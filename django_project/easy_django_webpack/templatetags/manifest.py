@@ -17,18 +17,13 @@ if hasattr(settings, 'WEBPACK_SETTINGS'):
     APP_SETTINGS.update(settings.WEBPACK_SETTINGS)
 
 
-@register.tag('static')
-def webpack(parser, token):
-    return do_static(parser, token)
-
-
 @register.tag('manifest')
-def webpack(parser, token):
+def manifest(parser, token):
     path = os.path.join(APP_SETTINGS['output_dir'],
                         APP_SETTINGS['manifest_file'])
 
-    with open(path) as manifest:
-        data = json.load(manifest)
+    with open(path) as manifest_file:
+        data = json.load(manifest_file)
 
     token.contents = "webpack '{}'".format(data.get(parse_filename(token)))
 

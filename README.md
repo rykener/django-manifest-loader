@@ -13,7 +13,7 @@ _Always have access to the latest assets, with minimal configuration. Wraps Djan
 **Into this**
 
 ```djangotemplate
-{% load webpack %}
+{% load manifest %}
 <script src="{% manifest 'main.js' %}"></script>
 ```
 
@@ -105,7 +105,7 @@ module.exports = {
 ## Usage
 
 ```djangotemplate
-{% load webpack %}
+{% load manifest %}
 
 <script src="{% manifest 'main.js' %}"></script>
 ```
@@ -119,7 +119,7 @@ turns into
 ## About
 
 At it's heart `easy_django_webpack` is an extension to Django's built-in `static` templatetag. 
-When you use the provided `{% webpack %}` templatetag, all `easy_django_webpack` is doing is 
+When you use the provided `{% manifest %}` templatetag, all `easy_django_webpack` is doing is 
 taking the input string, looking it up against the manifest file, modifying the value, and then
 passing along the result to the `{% static %}` template tag. 
 
