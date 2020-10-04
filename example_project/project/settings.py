@@ -128,7 +128,8 @@ STATICFILES_DIRS = [
 WEBPACK_SETTINGS = {
     'output_dir': BASE_DIR / 'dist',
     'manifest_file': 'manifest.json',
-    'cache': True
+    'cache': True,
+    'ignore_missing_assets': True,
 }
 
 CACHES = {

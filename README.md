@@ -56,7 +56,8 @@ you shouldn't be modifying it. _Hint: the `BASE_DIR` is the directory your `mana
 WEBPACK_SETTINGS = {
     'output_dir': BASE_DIR / 'dist',  # where webpack outputs to. 
     'manifest_file': 'manifest.json',  # name of your manifest file
-    'cache': False  # recommended `True` for production, requires a server restart to pickup new values from the manifest.
+    'cache': False,  # recommended True for production, requires a server restart to pickup new values from the manifest.
+    'ignore_missing_assets': False  # recommended True for production. Otherwise raises an exception if a file is not in the manifest.
 }
 ```
 

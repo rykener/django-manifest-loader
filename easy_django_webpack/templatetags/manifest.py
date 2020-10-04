@@ -11,7 +11,8 @@ register = template.Library()
 APP_SETTINGS = {
     'output_dir': settings.BASE_DIR / 'dist',
     'manifest_file': 'manifest.json',
-    'cache': False
+    'cache': False,
+    'ignore_missing_assets': False,
 }
 
 if hasattr(settings, 'WEBPACK_SETTINGS'):
@@ -21,13 +22,12 @@ if hasattr(settings, 'WEBPACK_SETTINGS'):
 @register.tag('manifest')
 def manifest(parser, token):
     cached_manifest = cache.get('webpack_manifest')
+    path = os.path.join(APP_SETTINGS['output_dir'],
+                        APP_SETTINGS['manifest_file'])
 
     if APP_SETTINGS['cache'] and cached_manifest:
         data = cached_manifest
     else:
-        path = os.path.join(APP_SETTINGS['output_dir'],
-                            APP_SETTINGS['manifest_file'])
-
         try:
             with open(path) as manifest_file:
                 data = json.load(manifest_file)
@@ -37,7 +37,11 @@ def manifest(parser, token):
         if APP_SETTINGS['cache']:
             cache.set('webpack_manifest', data)
 
-    token.contents = "webpack '{}'".format(data.get(parse_filename(token)))
+    hashed_filename = data.get(parse_filename(token))
+    if hashed_filename:
+        token.contents = "webpack '{}'".format(hashed_filename)
+    elif not APP_SETTINGS['ignore_missing_assets']:
+        raise AssetNotFoundInWebpackManifest(parse_filename(token), path)
 
     return do_static(parser, token)
 
@@ -52,3 +56,14 @@ class WebpackManifestNotFound(Exception):
                                      'settings are wrong or you need to still '
                                      'generate the file.'):
         super().__init__(message.format(APP_SETTINGS['manifest_file'], path))
+
+
+class AssetNotFoundInWebpackManifest(Exception):
+    def __init__(self, file, path, message='File {} is not referenced in the '
+                                           'manifest file located at {}. Make '
+                                           'sure webpack is outputting it. If '
+                                           'you would like to suppress this '
+                                           'error set WEBPACK_SETTINGS['
+                                           '"ignore_missing_assets"] '
+                                           'to True'):
+        super().__init__(message.format(file, path))
