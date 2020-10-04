@@ -28,8 +28,11 @@ def manifest(parser, token):
         path = os.path.join(APP_SETTINGS['output_dir'],
                             APP_SETTINGS['manifest_file'])
 
-        with open(path) as manifest_file:
-            data = json.load(manifest_file)
+        try:
+            with open(path) as manifest_file:
+                data = json.load(manifest_file)
+        except FileNotFoundError:
+            raise WebpackManifestNotFound(path)
 
         if APP_SETTINGS['cache']:
             cache.set('webpack_manifest', data)
@@ -41,3 +44,11 @@ def manifest(parser, token):
 
 def parse_filename(token):
     return token.contents.split("'")[1]
+
+
+class WebpackManifestNotFound(Exception):
+    def __init__(self, path, message='Manifest file named {} not found. '
+                                     'Looked for it at {}. Either your '
+                                     'settings are wrong or you need to still '
+                                     'generate the file.'):
+        super().__init__(message.format(APP_SETTINGS['manifest_file'], path))
