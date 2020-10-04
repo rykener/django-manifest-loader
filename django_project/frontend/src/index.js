@@ -1,0 +1,1 @@
+document.getElementById("main").innerText = 'It work';

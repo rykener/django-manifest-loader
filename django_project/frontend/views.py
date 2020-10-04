@@ -1,3 +1,7 @@
-from django.shortcuts import render
+from django.shortcuts import HttpResponse, render
+from django.conf import settings
 
-# Create your views here.
+
+def home(request):
+    return render(request, 'frontend/index.html')
+    # return HttpResponse(settings.WEBPACK_SETTINGS.get('output_dir'))
