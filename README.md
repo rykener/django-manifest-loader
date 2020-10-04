@@ -161,3 +161,8 @@ So you can see why you want the content hash in the filename. The manifest.json 
 from the original file name to the new one. If you didn't have a way to automate that mapping, every time you generate
 a new version of your assets, you'd have to go into your HTML and update the content hash yourself. Instead, you
 can just tell `easy_django_webpack` that you want the file `main.js` and it'll lookup the content hash for you. 
+
+### License 
+
+Easy Django Webpack is distributed under the [3-clause BSD license](https://opensource.org/licenses/BSD-3-Clause). 
+This is an open source license granting broad permissions to modify and redistribute the software.
