@@ -3,6 +3,20 @@
 _Always have access to the latest assets, with minimal configuration. Wraps Django's built in 
 `{% static %}` templatetag to allow you to link to assets according to a webpack manifest file._
 
+**Turns this**
+
+```djangotemplate
+{% load static %}
+<script src="{% static 'main.8f7705adfa281590b8dd.js' %}"></script>
+```
+
+**Into this**
+
+```djangotemplate
+{% load webpack %}
+<script src="{% manifest 'main.js' %}"></script>
+```
+
 ## Installation
 
 ```shell script
@@ -74,7 +88,7 @@ module.exports = {
   ],
   output: {
     filename: '[name].[contenthash].js',  // renames files from example.js to example.8f77someHash8adfa.js
-    path: path.resolve(__dirname, 'dist'),
+    path: path.resolve(__dirname, 'dist'), // output to BASE_DIR/dist, assumes webpack.json is on the same level as manage.py
   },
 };
 ```
@@ -101,3 +115,49 @@ turns into
 ```html
 <script src="/static/main.8f7705adfa281590b8dd.js"></script>
 ```
+
+## About
+
+At it's heart `easy_django_webpack` is an extension to Django's built-in `static` templatetag. 
+When you use the provided `{% webpack %}` templatetag, all `easy_django_webpack` is doing is 
+taking the input string, looking it up against the manifest file, modifying the value, and then
+passing along the result to the `{% static %}` template tag. 
+
+### Suggested Project Structure
+
+```
+BASE_DIR
+├── dist
+│   ├── main.f82c02a005f7f383003c.js
+│   └── manifest.json
+├── frontend
+│   ├── apps.py
+│   ├── src
+│   │   └── index.js
+│   ├── templates
+│   │   └── frontend
+│   │       └── index.html
+│   └── views.py
+├── manage.py
+├── package.json
+├── project
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+├── requirements.txt
+└── webpack.config.js
+```
+
+### Manifest File and Content Hash (the problem this package solves)
+
+When you put a content hash in the filename of an asset file, it serves as a sort of versioning mechanism
+for your assets. Every time the content changes, the hash changes. And when the hash changes, the browser sees that it 
+doesn't have that asset file, it drops it's 
+cached version of your old assets and gets the new one. If you only use the name `main.js` for your assets, the browser
+will just think, oh hey I have this file in my cache, and it won't check for updates. So then your users 
+won't see the latest changes unless they do a browser cache refresh, which isn't something you can expect.
+
+So you can see why you want the content hash in the filename. The manifest.json file is a way to provide a mapping
+from the original file name to the new one. If you didn't have a way to automate that mapping, every time you generate
+a new version of your assets, you'd have to go into your HTML and update the content hash yourself. Instead, you
+can just tell `easy_django_webpack` that you want the file `main.js` and it'll lookup the content hash for you. 
