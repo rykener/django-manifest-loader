@@ -37,6 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'easy_django_webpack',
+    'frontend',
 ]
 
 MIDDLEWARE = [
@@ -118,3 +120,22 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+
+STATICFILES_DIRS = [
+    BASE_DIR / 'dist'
+]
+
+WEBPACK_SETTINGS = {
+    'output_dir': BASE_DIR / 'dist',
+    'manifest_file': 'manifest.json',
+    'cache': True,
+    'ignore_missing_assets': True,
+}
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+        'TIMEOUT': None
+    }
+}
