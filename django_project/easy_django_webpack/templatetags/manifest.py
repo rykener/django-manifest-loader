@@ -4,6 +4,7 @@ import os
 from django import template
 from django.templatetags.static import do_static
 from django.conf import settings
+from django.core.cache import cache
 
 register = template.Library()
 
@@ -19,11 +20,19 @@ if hasattr(settings, 'WEBPACK_SETTINGS'):
 
 @register.tag('manifest')
 def manifest(parser, token):
-    path = os.path.join(APP_SETTINGS['output_dir'],
-                        APP_SETTINGS['manifest_file'])
+    cached_manifest = cache.get('webpack_manifest')
 
-    with open(path) as manifest_file:
-        data = json.load(manifest_file)
+    if APP_SETTINGS['cache'] and cached_manifest:
+        data = cached_manifest
+    else:
+        path = os.path.join(APP_SETTINGS['output_dir'],
+                            APP_SETTINGS['manifest_file'])
+
+        with open(path) as manifest_file:
+            data = json.load(manifest_file)
+
+        if APP_SETTINGS['cache']:
+            cache.set('webpack_manifest', data)
 
     token.contents = "webpack '{}'".format(data.get(parse_filename(token)))
 

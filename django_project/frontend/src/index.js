@@ -1,1 +1,1 @@
-document.getElementById("main").innerText = 'It work';
+document.getElementById("main").innerText = 'It works!';

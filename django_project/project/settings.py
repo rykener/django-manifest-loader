@@ -130,3 +130,11 @@ WEBPACK_SETTINGS = {
     'manifest_file': 'manifest.json',
     'cache': True
 }
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+        'TIMEOUT': None
+    }
+}
