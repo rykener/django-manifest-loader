@@ -152,7 +152,7 @@ class AssetNotFoundInWebpackManifest(Exception):
                                      'sure webpack is outputting it or try '
                                      'disabling the cache if enabled. If '
                                      'you would like to suppress this '
-                                     'error set WEBPACK_SETTINGS['
+                                     'error set MANIFEST_LOADER['
                                      '"ignore_missing_assets"] '
                                      'to True'):
         super().__init__(message.format(file))

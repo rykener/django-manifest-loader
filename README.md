@@ -1,4 +1,4 @@
-# Easy Django webpack
+# Django Manifest Loader
 
 _Always have access to the latest assets, with minimal configuration. Wraps Django's built in 
 `{% static %}` templatetag to allow you to link to assets according to a webpack manifest file._
@@ -20,7 +20,7 @@ _Always have access to the latest assets, with minimal configuration. Wraps Djan
 ## Installation
 
 ```shell script
-pip install easy_django_webpack
+pip install django_manifest_loader
 ```
 
 ## Setup
@@ -53,7 +53,7 @@ you shouldn't be modifying it. _Hint: the `BASE_DIR` is the directory your `mana
 ```python
 # settings.py
 
-MANIFEST_LOADER_SETTINGS = {
+MANIFEST_LOADER = {
     'output_dir': BASE_DIR / 'dist',  # where webpack outputs to. 
     'manifest_file': 'manifest.json',  # name of your manifest file
     'cache': False,  # recommended True for production, requires a server restart to pickup new values from the manifest.
@@ -119,8 +119,8 @@ turns into
 
 ## About
 
-At it's heart `easy_django_webpack` is an extension to Django's built-in `static` templatetag. 
-When you use the provided `{% manifest %}` templatetag, all `easy_django_webpack` is doing is 
+At it's heart Django Manifest Loader is an extension to Django's built-in `static` templatetag. 
+When you use the provided `{% manifest %}` templatetag, all the manifest loader is doing is 
 taking the input string, looking it up against the manifest file, modifying the value, and then
 passing along the result to the `{% static %}` template tag. 
 
@@ -161,9 +161,9 @@ won't see the latest changes unless they do a browser cache refresh, which isn't
 So you can see why you want the content hash in the filename. The manifest.json file is a way to provide a mapping
 from the original file name to the new one. If you didn't have a way to automate that mapping, every time you generate
 a new version of your assets, you'd have to go into your HTML and update the content hash yourself. Instead, you
-can just tell `easy_django_webpack` that you want the file `main.js` and it'll lookup the content hash for you. 
+can just tell Django Manifest Loader that you want the file `main.js` and it'll lookup the content hash for you. 
 
 ### License 
 
-Easy Django Webpack is distributed under the [3-clause BSD license](https://opensource.org/licenses/BSD-3-Clause). 
+Django Manifest Loader is distributed under the [3-clause BSD license](https://opensource.org/licenses/BSD-3-Clause). 
 This is an open source license granting broad permissions to modify and redistribute the software.
