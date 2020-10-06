@@ -22,7 +22,14 @@ if hasattr(settings, 'MANIFEST_LOADER'):
 
 @register.tag('manifest')
 def do_manifest(parser, token):
-    tag_name, filename = parse_token(token)
+    try:
+        tag_name, filename = parse_token(token)
+    except ValueError:
+        raise template.TemplateSyntaxError(
+            "%r tag given the wrong number of arguments" %
+            token.contents.split()[0]
+        )
+
     manifest = get_manifest()
 
     hashed_filename = manifest.get(filename)
@@ -41,7 +48,15 @@ def do_manifest_match(parser, token):
 
 class ManifestNode(template.Node):
     def __init__(self, parser, token):
-        tag_name, self.search_string, self.output_tag = parse_token(token)
+
+        try:
+            tag_name, self.search_string, self.output_tag = parse_token(token)
+        except ValueError:
+            raise template.TemplateSyntaxError(
+                "%r tag given the wrong number of arguments" %
+                token.contents.split()[0]
+            )
+
         self.manifest = get_manifest()
         self.parser = parser
         self.token = token

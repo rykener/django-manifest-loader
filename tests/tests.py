@@ -1,10 +1,12 @@
 from django.conf import settings
 from django.test import SimpleTestCase
-from django.template import TemplateSyntaxError
+from django.template import TemplateSyntaxError, Context, Template
 from django.core.cache import cache
 
 from manifest_loader.templatetags.manifest import strip_quotes, \
-    find_manifest_path, WebpackManifestNotFound, get_manifest, APP_SETTINGS
+    find_manifest_path, WebpackManifestNotFound, get_manifest, APP_SETTINGS, \
+    AssetNotFoundInWebpackManifest
+
 
 NEW_STATICFILES_DIRS = [
     settings.BASE_DIR / 'foo',
@@ -12,6 +14,12 @@ NEW_STATICFILES_DIRS = [
     settings.BASE_DIR / 'dist',
     settings.BASE_DIR / 'bax',
 ]
+
+
+def render_template(string, context=None):
+    context = context or {}
+    context = Context(context)
+    return Template(string).render(context)
 
 
 class StripQuotesTests(SimpleTestCase):
@@ -80,7 +88,13 @@ class GetManifestTests(SimpleTestCase):
         cache.set('webpack_manifest', {'foo': 'bar'})
         self.assertFalse(APP_SETTINGS['cache'])
         self.assertDictEqual(
-            {'main.js': 'main.e12dfe2f9b185dea03a4.js'},
+            {
+                'main.js': 'main.e12dfe2f9b185dea03a4.js',
+                "chunk1.js": "chunk1.hash.js",
+                "chunk2.js": "chunk2.hash.js",
+                "chunk3.js": "chunk3.hash.js",
+                "styles.css": "styles.hash.css"
+            },
             get_manifest()
         )
         self.assertDictEqual(
@@ -102,7 +116,13 @@ class GetManifestTests(SimpleTestCase):
 
         self.assertDictEqual(
             manifest,
-            {'main.js': 'main.e12dfe2f9b185dea03a4.js'}
+            {
+                'main.js': 'main.e12dfe2f9b185dea03a4.js',
+                "chunk1.js": "chunk1.hash.js",
+                "chunk2.js": "chunk2.hash.js",
+                "chunk3.js": "chunk3.hash.js",
+                "styles.css": "styles.hash.css"
+            },
         )
 
         self.assertDictEqual(
@@ -111,3 +131,111 @@ class GetManifestTests(SimpleTestCase):
         )
         APP_SETTINGS.update({'cache': False})
         cache.delete('webpack_manifest')
+
+
+class ManifestTagTests(SimpleTestCase):
+    def test_basic_usage(self):
+        rendered = render_template(
+            '{% load manifest %}'
+            '{% manifest "main.js" %}'
+        )
+        self.assertEqual(
+            rendered,
+            '/static/main.e12dfe2f9b185dea03a4.js'
+        )
+
+    def test_non_default_static_url(self):
+        with self.settings(STATIC_URL='/foo/'):
+            rendered = render_template(
+                '{% load manifest %}'
+                '{% manifest "main.js" %}'
+            )
+            self.assertEqual(
+                rendered,
+                '/foo/main.e12dfe2f9b185dea03a4.js'
+            )
+
+    def test_no_arg(self):
+        with self.assertRaises(TemplateSyntaxError):
+            render_template(
+                '{% load manifest %}'
+                '{% manifest %}'
+            )
+
+    def test_too_many_args(self):
+        with self.assertRaises(TemplateSyntaxError):
+            render_template(
+                '{% load manifest %}'
+                '{% manifest "foo" "bar" %}'
+            )
+
+    def test_missing_asset(self):
+        with self.assertRaises(AssetNotFoundInWebpackManifest):
+            render_template(
+                '{% load manifest %}'
+                '{% manifest "foo.js" %}'
+            )
+
+    def test_ignore_missing_assets(self):
+        APP_SETTINGS.update({'ignore_missing_assets': True})
+        rendered = render_template(
+            '{% load manifest %}'
+            '{% manifest "foo.js" %}'
+        )
+        self.assertEqual(
+            rendered,
+            '/static/foo.js'
+        )
+        APP_SETTINGS.update({'ignore_missing_assets': False})
+
+
+class ManifestMatchTagTests(SimpleTestCase):
+    def test_renders_correctly(self):
+        rendered = render_template(
+            '{% load manifest %}'
+            '{% manifest_match "*.css" "<foo {match} bar>" %}'
+        )
+        self.assertEqual(
+            rendered,
+            '<foo /static/styles.hash.css bar>'
+        )
+
+    def test_handles_no_math(self):
+        rendered = render_template(
+            '{% load manifest %}'
+            '{% manifest_match "*.exe" "<foo {match} bar>" %}'
+        )
+        self.assertEqual(
+            rendered,
+            ''
+        )
+
+    def test_renders_multiple_files(self):
+        rendered = render_template(
+            '{% load manifest %}'
+            "{% manifest_match '*.js' '<script src=\"{match}\" />' %}"
+        )
+        self.assertEqual(
+            rendered,
+            '<script src="/static/main.e12dfe2f9b185dea03a4.js" />\n'
+            '<script src="/static/chunk1.hash.js" />\n'
+            '<script src="/static/chunk2.hash.js" />\n'
+            '<script src="/static/chunk3.hash.js" />'
+        )
+
+    def test_handles_missing_match_placeholder(self):
+        rendered = render_template(
+            '{% load manifest %}'
+            "{% manifest_match '*.css' 'foo' %}"
+        )
+        self.assertEqual(
+            rendered,
+            'foo'
+        )
+
+    def test_handles_missing_arg(self):
+        with self.assertRaises(TemplateSyntaxError):
+            render_template(
+                '{% load manifest %}'
+                "{% manifest_match '*.css' %}"
+            )
