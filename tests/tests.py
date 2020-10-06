@@ -76,11 +76,38 @@ class GetManifestTests(SimpleTestCase):
         cache.delete('webpack_manifest')
         APP_SETTINGS.update({'cache': False})
 
-    def test_cached_not_used(self):
+    def test_cache_not_used(self):
         cache.set('webpack_manifest', {'foo': 'bar'})
         self.assertFalse(APP_SETTINGS['cache'])
         self.assertDictEqual(
             {'main.js': 'main.e12dfe2f9b185dea03a4.js'},
             get_manifest()
         )
+        self.assertDictEqual(
+            {'foo': 'bar'},
+            cache.get('webpack_manifest')
+        )
+        cache.delete('webpack_manifest')
+
+    def test_custom_output_dir(self):
+        APP_SETTINGS.update({'output_dir': settings.BASE_DIR / 'foo'})
+        with self.assertRaises(WebpackManifestNotFound):
+            get_manifest()
+        APP_SETTINGS.update({'output_dir': None})
+
+    def test_cache_set(self):
+        APP_SETTINGS.update({'cache': True})
+        self.assertIsNone(cache.get('webpack_manifest'))
+        manifest = get_manifest()
+
+        self.assertDictEqual(
+            manifest,
+            {'main.js': 'main.e12dfe2f9b185dea03a4.js'}
+        )
+
+        self.assertDictEqual(
+            manifest,
+            cache.get('webpack_manifest')
+        )
+        APP_SETTINGS.update({'cache': False})
         cache.delete('webpack_manifest')

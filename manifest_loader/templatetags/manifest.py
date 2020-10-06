@@ -61,6 +61,7 @@ class ManifestNode(template.Node):
 
 
 def get_manifest():
+    """has test coverage"""
     cached_manifest = cache.get('webpack_manifest')
     if APP_SETTINGS['cache'] and cached_manifest:
         return cached_manifest
@@ -84,6 +85,7 @@ def get_manifest():
 
 
 def find_manifest_path():
+    """has test coverage"""
     static_dirs = settings.STATICFILES_DIRS
     if len(static_dirs) == 1:
         return os.path.join(static_dirs[0], APP_SETTINGS['manifest_file'])
@@ -108,6 +110,7 @@ def parse_token(token):
 
 
 def strip_quotes(tag_name, content):
+    """has test coverage"""
     if not isinstance(content, str):
         raise template.TemplateSyntaxError(
             "%r tag's argument should be a string in quotes"
