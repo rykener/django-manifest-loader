@@ -16,8 +16,8 @@ APP_SETTINGS = {
     'ignore_missing_assets': False,
 }
 
-if hasattr(settings, 'MANIFEST_LOADER_SETTINGS'):
-    APP_SETTINGS.update(settings.MANIFEST_LOADER_SETTINGS)
+if hasattr(settings, 'MANIFEST_LOADER'):
+    APP_SETTINGS.update(settings.MANIFEST_LOADER)
 
 
 @register.tag('manifest')
@@ -108,6 +108,10 @@ def parse_token(token):
 
 
 def strip_quotes(tag_name, content):
+    if not isinstance(content, str):
+        raise template.TemplateSyntaxError(
+            "%r tag's argument should be a string in quotes"
+        )
     if not (content[0] == content[-1] and
             content[0] in ('"', "'")):
         raise template.TemplateSyntaxError(
@@ -119,7 +123,7 @@ def strip_quotes(tag_name, content):
 class WebpackManifestNotFound(Exception):
     def __init__(self, path, message='Manifest file named {} not found. '
                                      'Looked for it at {}. Either your '
-                                     'settings are wrong or you need to still '
+                                     'settings are wrong or you still need to '
                                      'generate the file.'):
         super().__init__(message.format(APP_SETTINGS['manifest_file'], path))
 
