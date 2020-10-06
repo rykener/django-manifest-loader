@@ -30,7 +30,7 @@ pip install easy_django_webpack
 
 INSTALLED_APPS = [
     ...
-    'easy_django_webpack',
+    'manifest_loader',
     ...
 ]
 ```
@@ -53,7 +53,7 @@ you shouldn't be modifying it. _Hint: the `BASE_DIR` is the directory your `mana
 ```python
 # settings.py
 
-WEBPACK_SETTINGS = {
+MANIFEST_LOADER_SETTINGS = {
     'output_dir': BASE_DIR / 'dist',  # where webpack outputs to. 
     'manifest_file': 'manifest.json',  # name of your manifest file
     'cache': False,  # recommended True for production, requires a server restart to pickup new values from the manifest.

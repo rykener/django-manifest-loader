@@ -16,8 +16,8 @@ APP_SETTINGS = {
     'ignore_missing_assets': False,
 }
 
-if hasattr(settings, 'WEBPACK_SETTINGS'):
-    APP_SETTINGS.update(settings.WEBPACK_SETTINGS)
+if hasattr(settings, 'MANIFEST_LOADER_SETTINGS'):
+    APP_SETTINGS.update(settings.MANIFEST_LOADER_SETTINGS)
 
 
 @register.tag('manifest')

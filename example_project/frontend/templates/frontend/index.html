@@ -1,4 +1,6 @@
 {% load manifest %}
 
 <h1 id="main"></h1>
-<script src="{% manifest 'maddin.js' %}"></script>
+
+{% manifest_match '*.js' '<script src="{match}"></script>' %}
+
