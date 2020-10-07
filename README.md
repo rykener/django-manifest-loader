@@ -168,7 +168,27 @@ from the original file name to the new one. If you didn't have a way to automate
 a new version of your assets, you'd have to go into your HTML and update the content hash yourself. Instead, you
 can just tell Django Manifest Loader that you want the file `main.js` and it'll lookup the content hash for you. 
 
+### Tests and Code Coverage
+
+Run unit tests and verify 100% code coverage with:
+
+```
+git clone https://github.com/shonin/django-manifest-loader.git
+cd django-manifest-loader
+pip install -e .
+
+# run tests
+python runtests.py
+
+# check code coverage
+pip install coverage
+coverage run --source=manifest_loader/templatetags/ runtests.py
+coverage report
+```
+
+
 ### License 
 
 Django Manifest Loader is distributed under the [3-clause BSD license](https://opensource.org/licenses/BSD-3-Clause). 
 This is an open source license granting broad permissions to modify and redistribute the software.
+
