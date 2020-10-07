@@ -37,7 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'easy_django_webpack',
+    'manifest_loader',
     'frontend',
 ]
 
@@ -122,14 +122,14 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
-    BASE_DIR / 'dist'
+    BASE_DIR / 'dist',
 ]
 
-WEBPACK_SETTINGS = {
+MANIFEST_LOADER_SETTINGS = {
     'output_dir': BASE_DIR / 'dist',
     'manifest_file': 'manifest.json',
-    'cache': True,
-    'ignore_missing_assets': True,
+    'cache': False,
+    'ignore_missing_assets': False,
 }
 
 CACHES = {
