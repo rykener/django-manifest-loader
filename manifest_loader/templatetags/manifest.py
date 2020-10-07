@@ -14,6 +14,7 @@ APP_SETTINGS = {
     'manifest_file': 'manifest.json',
     'cache': False,
     'ignore_missing_assets': False,
+    'ignore_missing_match_tag': False,
 }
 
 if hasattr(settings, 'MANIFEST_LOADER'):
@@ -55,6 +56,10 @@ class ManifestNode(template.Node):
             raise template.TemplateSyntaxError(
                 "%r tag given the wrong number of arguments" %
                 token.contents.split()[0]
+            )
+        if '{match}' not in self.output_tag and not APP_SETTINGS['ignore_missing_match_tag']:
+            raise template.TemplateSyntaxError(
+                "manifest_match tag's second arg must contain the string {match}"
             )
 
         self.manifest = get_manifest()

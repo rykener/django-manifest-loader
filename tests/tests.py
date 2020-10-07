@@ -224,6 +224,14 @@ class ManifestMatchTagTests(SimpleTestCase):
         )
 
     def test_handles_missing_match_placeholder(self):
+        with self.assertRaises(TemplateSyntaxError):
+            render_template(
+                '{% load manifest %}'
+                "{% manifest_match '*.css' 'foo' %}"
+            )
+
+    def test_ignores_missing_match_placeholder(self):
+        APP_SETTINGS.update({'ignore_missing_match_tag': True})
         rendered = render_template(
             '{% load manifest %}'
             "{% manifest_match '*.css' 'foo' %}"
@@ -232,6 +240,7 @@ class ManifestMatchTagTests(SimpleTestCase):
             rendered,
             'foo'
         )
+        APP_SETTINGS.update({'ignore_missing_match_tag': False})
 
     def test_handles_missing_arg(self):
         with self.assertRaises(TemplateSyntaxError):
