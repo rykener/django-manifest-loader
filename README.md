@@ -23,6 +23,10 @@ split chunks._
 <script src="/static/main.8f7705adfa281590b8dd.js" />
 ```
 
+* For an in-depth look at this package, check out [this blog post here](https://medium.com/@shonin/django-and-webpack-now-work-together-seamlessly-a90cffdbab8e)
+* [Quick start guide](https://medium.com/@shonin/django-and-webpack-in-4-short-steps-b39bd3380c71)
+
+
 ## Installation
 
 ```shell script
