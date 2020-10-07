@@ -6,15 +6,14 @@ _Always have access to the latest assets, with minimal configuration. Wraps Djan
 **Turns this**
 
 ```djangotemplate
-{% load static %}
-<script src="{% static 'main.8f7705adfa281590b8dd.js' %}"></script>
+{% load manifest %}
+<script src="{% manifest 'main.js' %}" />
 ```
 
 **Into this**
 
 ```djangotemplate
-{% load manifest %}
-<script src="{% manifest 'main.js' %}"></script>
+<script src="/static/main.8f7705adfa281590b8dd.js" />
 ```
 
 ## Installation
