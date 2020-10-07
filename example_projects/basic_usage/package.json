@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "webpack"
+    "start": "webpack --watch --mode development",
+    "build": "webpack --mode production",
+    "dev": "webpack --mode development"
   },
   "keywords": [],
   "author": "",
