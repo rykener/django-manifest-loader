@@ -1,7 +1,10 @@
 # Django Manifest Loader
 
-[![Build Status](https://travis-ci.org/shonin/django-manifest-loader.png?branch=dev)](https://travis-ci.org/shonin/django-manifest-loader)
-[![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](#)
+[![Build Status](https://img.shields.io/travis/shonin/django-manifest-loader/main?label=latest%20published%20branch&style=flat-square
+)](https://travis-ci.org/shonin/django-manifest-loader)
+[![Build Status](https://img.shields.io/travis/shonin/django-manifest-loader/dev?label=development%20branch&style=flat-square
+)](https://travis-ci.org/shonin/django-manifest-loader)
+[![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat-square)](#)
 
 _Always have access to the latest assets, with minimal configuration. Wraps Django's built in 
 `{% static %}` templatetag to allow you to link to assets according to a webpack manifest file._
