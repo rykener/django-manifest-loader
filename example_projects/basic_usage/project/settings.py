@@ -124,18 +124,3 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'dist',
 ]
-
-MANIFEST_LOADER_SETTINGS = {
-    'output_dir': BASE_DIR / 'dist',
-    'manifest_file': 'manifest.json',
-    'cache': False,
-    'ignore_missing_assets': False,
-}
-
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'unique-snowflake',
-        'TIMEOUT': None
-    }
-}
