@@ -1,0 +1,5 @@
+{% load manifest %}
+
+<div id="app"></div>
+
+{% manifest_match '*.js' '<script src="{match}"></script>' %}
