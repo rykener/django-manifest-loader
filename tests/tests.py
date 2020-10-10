@@ -2,11 +2,17 @@ from django.conf import settings
 from django.test import SimpleTestCase
 from django.template import TemplateSyntaxError, Context, Template
 from django.core.cache import cache
+from django.apps import AppConfig
 
 from manifest_loader.templatetags.manifest import strip_quotes, \
-    find_manifest_path, WebpackManifestNotFound, get_manifest, APP_SETTINGS, \
-    AssetNotFoundInWebpackManifest
+    find_manifest_path, get_manifest, APP_SETTINGS
 
+from manifest_loader.exceptions import AssetNotFoundInWebpackManifest, \
+    WebpackManifestNotFound, CustomManifestLoaderNotValid
+
+from manifest_loader.apps import ManifestLoader
+
+from manifest_loader.loaders import DEFAULT, LoaderABC
 
 NEW_STATICFILES_DIRS = [
     settings.BASE_DIR / 'foo',
@@ -20,6 +26,12 @@ def render_template(string, context=None):
     context = context or {}
     context = Context(context)
     return Template(string).render(context)
+
+
+class AppTest(SimpleTestCase):
+    def test_is_app(self):
+        self.assertEqual(ManifestLoader.name, 'manifest_loader')
+        self.assertTrue(issubclass(ManifestLoader, AppConfig))
 
 
 class StripQuotesTests(SimpleTestCase):
@@ -248,3 +260,28 @@ class ManifestMatchTagTests(SimpleTestCase):
                 '{% load manifest %}'
                 "{% manifest_match '*.css' %}"
             )
+
+
+class LoadFromManifestTests(SimpleTestCase):
+    def test_loader_not_subclass(self):
+        class Foo:
+            pass
+
+        APP_SETTINGS.update({'loader': Foo})
+
+        with self.assertRaises(CustomManifestLoaderNotValid):
+            render_template(
+                '{% load manifest %}'
+                '{% manifest "main.js" %}'
+            )
+
+        APP_SETTINGS.update({'loader': DEFAULT})
+
+
+class LoaderABCTests(SimpleTestCase):
+    def test_if_meta(self):
+        self.assertTrue(hasattr(LoaderABC, 'register'))
+
+    def test_methods_not_implemented(self):
+        self.assertIsNone(LoaderABC.get_single_match('foo', 'bar'))
+        self.assertIsNone(LoaderABC.get_multi_match('foo', 'bar'))

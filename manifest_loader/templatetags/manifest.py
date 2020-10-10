@@ -1,11 +1,14 @@
 import json
 import os
-import fnmatch
 
 from django import template
 from django.templatetags.static import do_static, StaticNode
 from django.conf import settings
 from django.core.cache import cache
+
+from manifest_loader import loaders
+from manifest_loader.exceptions import CustomManifestLoaderNotValid, \
+    WebpackManifestNotFound, AssetNotFoundInWebpackManifest
 
 register = template.Library()
 
@@ -15,10 +18,25 @@ APP_SETTINGS = {
     'cache': False,
     'ignore_missing_assets': False,
     'ignore_missing_match_tag': False,
+    'loader': loaders.DEFAULT
 }
 
 if hasattr(settings, 'MANIFEST_LOADER'):
     APP_SETTINGS.update(settings.MANIFEST_LOADER)
+
+
+def load_from_manifest(filename=None, pattern=None):
+    loader = APP_SETTINGS['loader']
+
+    if not issubclass(loader, loaders.LoaderABC):
+        raise CustomManifestLoaderNotValid
+
+    manifest = get_manifest()
+
+    if filename:
+        return loader.get_single_match(manifest, filename)
+
+    return loader.get_multi_match(manifest, pattern)
 
 
 @register.tag('manifest')
@@ -31,9 +49,8 @@ def do_manifest(parser, token):
             token.contents.split()[0]
         )
 
-    manifest = get_manifest()
+    hashed_filename = load_from_manifest(filename=filename)
 
-    hashed_filename = manifest.get(filename)
     if hashed_filename:
         token.contents = "webpack '{}'".format(hashed_filename)
     elif not APP_SETTINGS['ignore_missing_assets']:
@@ -62,12 +79,10 @@ class ManifestNode(template.Node):
                 "manifest_match tag's second arg must contain the string {match}"
             )
 
-        self.manifest = get_manifest()
         self.parser = parser
         self.token = token
-        self.matched_files = [file for file in self.manifest.keys() if
-                              fnmatch.fnmatch(file, self.search_string)]
-        self.mapped_files = [self.manifest.get(file) for file in self.matched_files]
+        self.mapped_files = load_from_manifest(
+                                pattern=self.search_string)
 
     def render(self, context):
         urls = []
@@ -81,7 +96,11 @@ class ManifestNode(template.Node):
 
 
 def get_manifest():
-    """has test coverage"""
+    """
+    looks in cache for manifest if caching enabled. If not found
+    determines manifest location, opens file, and returns results
+    as a dictionary
+    """
     cached_manifest = cache.get('webpack_manifest')
     if APP_SETTINGS['cache'] and cached_manifest:
         return cached_manifest
@@ -105,7 +124,7 @@ def get_manifest():
 
 
 def find_manifest_path():
-    """has test coverage"""
+    """searches settings.STATICFILES_DIRS for the manifest file"""
     static_dirs = settings.STATICFILES_DIRS
     if len(static_dirs) == 1:
         return os.path.join(static_dirs[0], APP_SETTINGS['manifest_file'])
@@ -141,23 +160,3 @@ def strip_quotes(tag_name, content):
             "%r tag's argument should be in quotes" % tag_name
         )
     return content[1:-1]
-
-
-class WebpackManifestNotFound(Exception):
-    def __init__(self, path, message='Manifest file named {} not found. '
-                                     'Looked for it at {}. Either your '
-                                     'settings are wrong or you still need to '
-                                     'generate the file.'):
-        super().__init__(message.format(APP_SETTINGS['manifest_file'], path))
-
-
-class AssetNotFoundInWebpackManifest(Exception):
-    def __init__(self, file, message='File {} is not referenced in the '
-                                     'manifest file. Make '
-                                     'sure webpack is outputting it or try '
-                                     'disabling the cache if enabled. If '
-                                     'you would like to suppress this '
-                                     'error set MANIFEST_LOADER['
-                                     '"ignore_missing_assets"] '
-                                     'to True'):
-        super().__init__(message.format(file))
