@@ -127,7 +127,7 @@ browser cache every time the file is updated. This ensures that your users alway
 ```djangotemplate
 {% load manifest %}
 
-<script src="{% manifest_match '*.js' '<script src="{match}"/>' %}"></script>
+{% manifest_match '*.js' '<script src="{match}"/>' %}
 ```
 
 turns into
