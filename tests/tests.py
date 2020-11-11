@@ -144,6 +144,17 @@ class ManifestTagTests(SimpleTestCase):
             '/static/main.e12dfe2f9b185dea03a4.js'
         )
 
+    # def test_with_var_no_string(self):
+    #     rendered = render_template(
+    #         '{% load manifest %}'
+    #         '{% manifest foo %}',
+    #         {'foo': 'main.js'}
+    #     )
+    #     self.assertEqual(
+    #         rendered,
+    #         '/static/main.e12dfe2f9b185dea03a4.js'
+    #     )
+
     def test_non_default_static_url(self):
         with self.settings(STATIC_URL='/foo/'):
             rendered = render_template(

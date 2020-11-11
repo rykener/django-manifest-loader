@@ -23,31 +23,36 @@ if hasattr(settings, 'MANIFEST_LOADER'):
 
 @register.tag('manifest')
 def do_manifest(parser, token):
-    try:
-        tag_name, filename = parse_token(token)
-    except ValueError:
-        raise template.TemplateSyntaxError(
-            "%r tag given the wrong number of arguments" %
-            token.contents.split()[0]
-        )
+    return ManifestNode.handle_token(parser, token)
 
-    manifest = get_manifest()
 
-    hashed_filename = manifest.get(filename)
-    if hashed_filename:
-        token.contents = "webpack '{}'".format(hashed_filename)
-    elif not APP_SETTINGS['ignore_missing_assets']:
-        raise AssetNotFoundInWebpackManifest(filename)
+class ManifestNode(StaticNode):
+    @classmethod
+    def handle_token(cls, parser, token):
+        try:
+            tag_name, filename = parse_token(token)
+        except ValueError:
+            raise template.TemplateSyntaxError(
+                "%r tag given the wrong number of arguments" %
+                token.contents.split()[0]
+            )
 
-    return do_static(parser, token)
+        manifest = get_manifest()
+
+        hashed_filename = manifest.get(filename)
+        if hashed_filename:
+            token.contents = "manifest '{}'".format(hashed_filename)
+        elif not APP_SETTINGS['ignore_missing_assets']:
+            raise AssetNotFoundInWebpackManifest(filename)
+        return super().handle_token(parser, token)
 
 
 @register.tag('manifest_match')
 def do_manifest_match(parser, token):
-    return ManifestNode(parser, token)
+    return ManifestMatchNode(parser, token)
 
 
-class ManifestNode(template.Node):
+class ManifestMatchNode(template.Node):
     def __init__(self, parser, token):
 
         try:
