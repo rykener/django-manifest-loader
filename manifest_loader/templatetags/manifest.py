@@ -29,20 +29,21 @@ def do_manifest(parser, token):
     return ManifestNode(token)
 
 
+@register.tag('manifest_match')
+def do_manifest_match(parser, token):
+    return ManifestMatchNode(token)
+
+
 class ManifestNode(Node):
     def __init__(self, token):
         bits = token.split_contents()
         if len(bits) < 2:
             raise template.TemplateSyntaxError(
-                "'%s' takes at least one argument (path to file)" % bits[0])
+                "'%s' takes one argument (name of file)" % bits[0])
         self.bits = bits
 
     def render(self, context):
-        if is_quoted_string(self.bits[1]):
-            manifest_key = self.bits[1][1:-1]
-        else:
-            manifest_key = context.get(self.bits[1], '')
-
+        manifest_key = get_value(self.bits[1], context)
         manifest = get_manifest()
         manifest_value = manifest.get(manifest_key, manifest_key)
 
@@ -52,37 +53,32 @@ class ManifestNode(Node):
         return url
 
 
-@register.tag('manifest_match')
-def do_manifest_match(parser, token):
-    return ManifestMatchNode(parser, token)
-
-
 class ManifestMatchNode(template.Node):
-    def __init__(self, parser, token):
-
-        try:
-            tag_name, self.search_string, self.output_tag = parse_token(token)
-        except ValueError:
+    def __init__(self, token):
+        self.bits = token.split_contents()
+        if len(self.bits) < 3:
             raise template.TemplateSyntaxError(
-                "%r tag given the wrong number of arguments" %
-                token.contents.split()[0]
+                "'%s' takes two arguments (pattern to match and string to "
+                "insert into)" % self.bits[0]
             )
-
-        self.manifest = get_manifest()
-        self.parser = parser
-        self.token = token
-        self.matched_files = [file for file in self.manifest.keys() if
-                              fnmatch.fnmatch(file, self.search_string)]
-        self.mapped_files = [self.manifest.get(file) for file in self.matched_files]
 
     def render(self, context):
         urls = []
-        for file in self.mapped_files:
-            self.token.contents = "manifest_match '{}'".format(file)
-            node = StaticNode.handle_token(self.parser, self.token)
-            url = node.render(context)
+        search_string = get_value(self.bits[1], context)
+        output_tag = get_value(self.bits[2], context)
+
+        manifest = get_manifest()
+
+        matched_files = [file for file in manifest.keys() if
+                         fnmatch.fnmatch(file, search_string)]
+        mapped_files = [manifest.get(file) for file in matched_files]
+
+        for file in mapped_files:
+            url = StaticNode.handle_simple(file)
+            if context.autoescape:
+                url = conditional_escape(url)
             urls.append(url)
-        output_tags = [self.output_tag.format(match=file) for file in urls]
+        output_tags = [output_tag.format(match=file) for file in urls]
         return '\n'.join(output_tags)
 
 
@@ -150,3 +146,9 @@ def is_quoted_string(string):
     if len(string) < 2:
         return False
     return string[0] == string[-1] and string[0] in ('"', "'")
+
+
+def get_value(string, context):
+    if is_quoted_string(string):
+        return string[1:-1]
+    return context.get(string, '')
