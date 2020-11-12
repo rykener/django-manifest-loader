@@ -20,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '$@(2%#r=^xovq((k_#o0g1&u()xze2yyqd_xn7@e4yza#%phh1'
+SECRET_KEY = 'ipt7l$sxiqs@_at%9%nx&jz41+(k6j7j&kxsu#gcb(qm8_lgip'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -37,8 +37,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     'manifest_loader',
-    'frontend',
+    'frontend'
 ]
 
 MIDDLEWARE = [
@@ -121,21 +122,4 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-STATICFILES_DIRS = [
-    BASE_DIR / 'dist',
-]
-
-MANIFEST_LOADER_SETTINGS = {
-    'output_dir': BASE_DIR / 'dist',
-    'manifest_file': 'manifest.json',
-    'cache': False,
-    'ignore_missing_assets': False,
-}
-
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'unique-snowflake',
-        'TIMEOUT': None
-    }
-}
+STATICFILES_DIRS = [BASE_DIR / 'dist']
