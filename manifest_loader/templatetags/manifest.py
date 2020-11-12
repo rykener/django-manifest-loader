@@ -4,11 +4,12 @@ import fnmatch
 
 from django import template
 from django.templatetags.static import StaticNode
+from django.template.base import Node
 from django.conf import settings
 from django.core.cache import cache
-from django.utils.safestring import SafeString
+from django.utils.html import conditional_escape
 
-from urllib.parse import quote
+from manifest_loader.exceptions import WebpackManifestNotFound
 
 
 register = template.Library()
@@ -17,7 +18,6 @@ APP_SETTINGS = {
     'output_dir': None,
     'manifest_file': 'manifest.json',
     'cache': False,
-    'ignore_missing_match_tag': False,
 }
 
 if hasattr(settings, 'MANIFEST_LOADER'):
@@ -26,26 +26,30 @@ if hasattr(settings, 'MANIFEST_LOADER'):
 
 @register.tag('manifest')
 def do_manifest(parser, token):
-    return ManifestNode.handle_token(parser, token)
+    return ManifestNode(token)
 
 
-class ManifestNode(StaticNode):
+class ManifestNode(Node):
+    def __init__(self, token):
+        bits = token.split_contents()
+        if len(bits) < 2:
+            raise template.TemplateSyntaxError(
+                "'%s' takes at least one argument (path to file)" % bits[0])
+        self.bits = bits
+
     def render(self, context):
-        if self.path.token[0] == self.path.token[-1] \
-                and self.path.token[0] in ('"', "'"):
-            manifest_key = self.path.token[1:-1]
+        if is_quoted_string(self.bits[1]):
+            manifest_key = self.bits[1][1:-1]
         else:
-            manifest_key = context.get(self.path.token)
-            if not manifest_key:
-                return super().render(context)
+            manifest_key = context.get(self.bits[1], '')
 
         manifest = get_manifest()
-        manifest_value = manifest.get(manifest_key) if manifest.get(manifest_key) else manifest_key
+        manifest_value = manifest.get(manifest_key, manifest_key)
 
-        if manifest_value:
-            self.path.var = SafeString(quote(manifest_value))
-            self.path.token = '"{}"'.format(manifest_value)
-        return super().render(context)
+        url = StaticNode.handle_simple(manifest_value)
+        if context.autoescape:
+            url = conditional_escape(url)
+        return url
 
 
 @register.tag('manifest_match')
@@ -62,10 +66,6 @@ class ManifestMatchNode(template.Node):
             raise template.TemplateSyntaxError(
                 "%r tag given the wrong number of arguments" %
                 token.contents.split()[0]
-            )
-        if '{match}' not in self.output_tag and not APP_SETTINGS['ignore_missing_match_tag']:
-            raise template.TemplateSyntaxError(
-                "manifest_match tag's second arg must contain the string {match}"
             )
 
         self.manifest = get_manifest()
@@ -146,21 +146,7 @@ def strip_quotes(tag_name, content):
     return content[1:-1]
 
 
-class WebpackManifestNotFound(Exception):
-    def __init__(self, path, message='Manifest file named {} not found. '
-                                     'Looked for it at {}. Either your '
-                                     'settings are wrong or you still need to '
-                                     'generate the file.'):
-        super().__init__(message.format(APP_SETTINGS['manifest_file'], path))
-
-
-class AssetNotFoundInWebpackManifest(Exception):
-    def __init__(self, file, message='File {} is not referenced in the '
-                                     'manifest file. Make '
-                                     'sure webpack is outputting it or try '
-                                     'disabling the cache if enabled. If '
-                                     'you would like to suppress this '
-                                     'error set MANIFEST_LOADER['
-                                     '"ignore_missing_assets"] '
-                                     'to True'):
-        super().__init__(message.format(file))
+def is_quoted_string(string):
+    if len(string) < 2:
+        return False
+    return string[0] == string[-1] and string[0] in ('"', "'")

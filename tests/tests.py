@@ -4,8 +4,9 @@ from django.template import TemplateSyntaxError, Context, Template
 from django.core.cache import cache
 
 from manifest_loader.templatetags.manifest import strip_quotes, \
-    find_manifest_path, WebpackManifestNotFound, get_manifest, APP_SETTINGS, \
-    AssetNotFoundInWebpackManifest
+    find_manifest_path, get_manifest, APP_SETTINGS
+
+from manifest_loader.exceptions import WebpackManifestNotFound
 
 
 NEW_STATICFILES_DIRS = [
@@ -235,15 +236,7 @@ class ManifestMatchTagTests(SimpleTestCase):
             '<script src="/static/chunk3.hash.js" />'
         )
 
-    def test_handles_missing_match_placeholder(self):
-        with self.assertRaises(TemplateSyntaxError):
-            render_template(
-                '{% load manifest %}'
-                "{% manifest_match '*.css' 'foo' %}"
-            )
-
     def test_ignores_missing_match_placeholder(self):
-        APP_SETTINGS.update({'ignore_missing_match_tag': True})
         rendered = render_template(
             '{% load manifest %}'
             "{% manifest_match '*.css' 'foo' %}"
@@ -252,7 +245,6 @@ class ManifestMatchTagTests(SimpleTestCase):
             rendered,
             'foo'
         )
-        APP_SETTINGS.update({'ignore_missing_match_tag': False})
 
     def test_handles_missing_arg(self):
         with self.assertRaises(TemplateSyntaxError):
