@@ -64,8 +64,6 @@ MANIFEST_LOADER = {
     'output_dir': None,  # where webpack outputs to, if not set will search in STATICFILES_DIRS for the manifest. 
     'manifest_file': 'manifest.json',  # name of your manifest file
     'cache': False,  # recommended True for production, requires a server restart to pickup new values from the manifest.
-    'ignore_missing_assets': False,  # raises an exception if a file is not in the manifest.
-    'ignore_missing_match_tag': False,  # raises an exception if the {match} string is not found in the manifest_match tag
 }
 ```
 
@@ -193,7 +191,7 @@ python runtests.py
 
 # check code coverage
 pip install coverage
-coverage run --source=manifest_loader/templatetags/ runtests.py
+coverage run --source=manifest_loader/ runtests.py
 coverage report
 ```
 
