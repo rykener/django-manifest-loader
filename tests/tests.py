@@ -2,9 +2,12 @@ from django.conf import settings
 from django.test import SimpleTestCase
 from django.template import TemplateSyntaxError, Context, Template
 from django.core.cache import cache
+from django.apps import AppConfig
 
-from manifest_loader.templatetags.manifest import strip_quotes, \
-    find_manifest_path, get_manifest, APP_SETTINGS
+from manifest_loader.templatetags.manifest import find_manifest_path, \
+    get_manifest, APP_SETTINGS, is_quoted_string
+
+from manifest_loader.apps import ManifestLoader
 
 from manifest_loader.exceptions import WebpackManifestNotFound
 
@@ -23,26 +26,13 @@ def render_template(string, context=None):
     return Template(string).render(context)
 
 
-class StripQuotesTests(SimpleTestCase):
+class IsQuotedStringTests(SimpleTestCase):
     def test_can_remove_quotes(self):
-        self.assertEqual(
-            strip_quotes('test_case', "'foobar'"),
-            'foobar'
-        )
-        self.assertEqual(
-            strip_quotes('test_case', '"foobar"'),
-            'foobar'
-        )
-
-    def test_will_raise_exception(self):
-        with self.assertRaises(TemplateSyntaxError):
-            strip_quotes('test_case', 'foobar')
-        with self.assertRaises(TemplateSyntaxError):
-            strip_quotes('test_case', 'foobar"')
-        with self.assertRaises(TemplateSyntaxError):
-            strip_quotes('test_case', 1234)
-        with self.assertRaises(TemplateSyntaxError):
-            strip_quotes('test_case', {'doo': 'bar'})
+        self.assertTrue(is_quoted_string('"foo"'))
+        self.assertTrue(is_quoted_string("'foo'"))
+        self.assertFalse(is_quoted_string("foo"))
+        self.assertFalse(is_quoted_string('foo'))
+        self.assertFalse(is_quoted_string('f'))
 
 
 class FindManifestPathTests(SimpleTestCase):
@@ -252,3 +242,8 @@ class ManifestMatchTagTests(SimpleTestCase):
                 '{% load manifest %}'
                 "{% manifest_match '*.css' %}"
             )
+
+
+class AppConfigTests(SimpleTestCase):
+    def test_the_django_app(self):
+        self.assertTrue(issubclass(ManifestLoader, AppConfig))

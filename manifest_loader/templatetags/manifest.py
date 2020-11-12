@@ -116,32 +116,6 @@ def find_manifest_path():
     raise WebpackManifestNotFound('settings.STATICFILES_DIRS')
 
 
-def parse_token(token):
-    contents = token.split_contents()
-    if len(contents) == 2:
-        tag_name, file_name = contents
-        return tag_name, strip_quotes(tag_name, file_name)
-    elif len(contents) == 3:
-        tag_name, match_string, output_tag = contents
-        return tag_name, strip_quotes(tag_name, match_string), strip_quotes(tag_name, output_tag)
-    raise template.TemplateSyntaxError(
-        "%r tag given the wrong number of arguments" % token.contents.split()[0]
-    )
-
-
-def strip_quotes(tag_name, content):
-    if not isinstance(content, str):
-        raise template.TemplateSyntaxError(
-            "%r tag's argument should be a string in quotes"
-        )
-    if not (content[0] == content[-1] and
-            content[0] in ('"', "'")):
-        raise template.TemplateSyntaxError(
-            "%r tag's argument should be in quotes" % tag_name
-        )
-    return content[1:-1]
-
-
 def is_quoted_string(string):
     if len(string) < 2:
         return False
