@@ -6,6 +6,13 @@ from django import template
 from django.templatetags.static import do_static, StaticNode
 from django.conf import settings
 from django.core.cache import cache
+from django.utils.html import conditional_escape
+
+from django.template.base import FilterExpression
+from django.utils.safestring import SafeString
+
+from urllib.parse import quote
+
 
 register = template.Library()
 
@@ -27,24 +34,25 @@ def do_manifest(parser, token):
 
 
 class ManifestNode(StaticNode):
-    @classmethod
-    def handle_token(cls, parser, token):
-        try:
-            tag_name, filename = parse_token(token)
-        except ValueError:
-            raise template.TemplateSyntaxError(
-                "%r tag given the wrong number of arguments" %
-                token.contents.split()[0]
-            )
+    def render(self, context):
+        is_var = True
+        if self.path.token[0] == self.path.token[-1] and self.path.token[0] in ('"', "'"):
+            is_var = False
+
+        if is_var:
+            manifest_key = context[self.path.token]
+        else:
+            manifest_key = strip_quotes(None, self.path.token)
 
         manifest = get_manifest()
+        manifest_value = manifest.get(manifest_key)
 
-        hashed_filename = manifest.get(filename)
-        if hashed_filename:
-            token.contents = "manifest '{}'".format(hashed_filename)
+        if manifest_value:
+            self.path.var = SafeString(quote(manifest_value))
+            self.path.token = '"{}"'.format(manifest_value)
         elif not APP_SETTINGS['ignore_missing_assets']:
-            raise AssetNotFoundInWebpackManifest(filename)
-        return super().handle_token(parser, token)
+            raise AssetNotFoundInWebpackManifest(manifest_value)
+        return super().render(context)
 
 
 @register.tag('manifest_match')
