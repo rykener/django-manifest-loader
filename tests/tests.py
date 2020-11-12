@@ -155,6 +155,16 @@ class ManifestTagTests(SimpleTestCase):
             '/static/main.e12dfe2f9b185dea03a4.js'
         )
 
+    def test_with_undefined_var(self):
+        rendered = render_template(
+            '{% load manifest %}'
+            '{% manifest foo %}'
+        )
+        self.assertEqual(
+            rendered,
+            '/static/'
+        )
+
     def test_non_default_static_url(self):
         with self.settings(STATIC_URL='/foo/'):
             rendered = render_template(
@@ -181,14 +191,6 @@ class ManifestTagTests(SimpleTestCase):
     #         )
 
     def test_missing_asset(self):
-        with self.assertRaises(AssetNotFoundInWebpackManifest):
-            render_template(
-                '{% load manifest %}'
-                '{% manifest "foo.js" %}'
-            )
-
-    def test_ignore_missing_assets(self):
-        APP_SETTINGS.update({'ignore_missing_assets': True})
         rendered = render_template(
             '{% load manifest %}'
             '{% manifest "foo.js" %}'
@@ -197,7 +199,6 @@ class ManifestTagTests(SimpleTestCase):
             rendered,
             '/static/foo.js'
         )
-        APP_SETTINGS.update({'ignore_missing_assets': False})
 
 
 class ManifestMatchTagTests(SimpleTestCase):

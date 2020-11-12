@@ -3,12 +3,9 @@ import os
 import fnmatch
 
 from django import template
-from django.templatetags.static import do_static, StaticNode
+from django.templatetags.static import StaticNode
 from django.conf import settings
 from django.core.cache import cache
-from django.utils.html import conditional_escape
-
-from django.template.base import FilterExpression
 from django.utils.safestring import SafeString
 
 from urllib.parse import quote
@@ -20,7 +17,6 @@ APP_SETTINGS = {
     'output_dir': None,
     'manifest_file': 'manifest.json',
     'cache': False,
-    'ignore_missing_assets': False,
     'ignore_missing_match_tag': False,
 }
 
@@ -35,23 +31,20 @@ def do_manifest(parser, token):
 
 class ManifestNode(StaticNode):
     def render(self, context):
-        is_var = True
-        if self.path.token[0] == self.path.token[-1] and self.path.token[0] in ('"', "'"):
-            is_var = False
-
-        if is_var:
-            manifest_key = context[self.path.token]
+        if self.path.token[0] == self.path.token[-1] \
+                and self.path.token[0] in ('"', "'"):
+            manifest_key = self.path.token[1:-1]
         else:
-            manifest_key = strip_quotes(None, self.path.token)
+            manifest_key = context.get(self.path.token)
+            if not manifest_key:
+                return super().render(context)
 
         manifest = get_manifest()
-        manifest_value = manifest.get(manifest_key)
+        manifest_value = manifest.get(manifest_key) if manifest.get(manifest_key) else manifest_key
 
         if manifest_value:
             self.path.var = SafeString(quote(manifest_value))
             self.path.token = '"{}"'.format(manifest_value)
-        elif not APP_SETTINGS['ignore_missing_assets']:
-            raise AssetNotFoundInWebpackManifest(manifest_value)
         return super().render(context)
 
 
@@ -94,7 +87,6 @@ class ManifestMatchNode(template.Node):
 
 
 def get_manifest():
-    """has test coverage"""
     cached_manifest = cache.get('webpack_manifest')
     if APP_SETTINGS['cache'] and cached_manifest:
         return cached_manifest
@@ -118,7 +110,6 @@ def get_manifest():
 
 
 def find_manifest_path():
-    """has test coverage"""
     static_dirs = settings.STATICFILES_DIRS
     if len(static_dirs) == 1:
         return os.path.join(static_dirs[0], APP_SETTINGS['manifest_file'])
@@ -143,7 +134,6 @@ def parse_token(token):
 
 
 def strip_quotes(tag_name, content):
-    """has test coverage"""
     if not isinstance(content, str):
         raise template.TemplateSyntaxError(
             "%r tag's argument should be a string in quotes"
