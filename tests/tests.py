@@ -8,9 +8,9 @@ from manifest_loader.templatetags.manifest import find_manifest_path, \
     get_manifest, APP_SETTINGS, is_quoted_string
 
 from manifest_loader.apps import ManifestLoader
-
-from manifest_loader.exceptions import WebpackManifestNotFound
-
+from manifest_loader.exceptions import WebpackManifestNotFound, \
+    CustomManifestLoaderNotValid
+from manifest_loader.loaders import LoaderABC, DefaultLoader
 
 NEW_STATICFILES_DIRS = [
     settings.BASE_DIR / 'foo',
@@ -247,3 +247,28 @@ class ManifestMatchTagTests(SimpleTestCase):
 class AppConfigTests(SimpleTestCase):
     def test_the_django_app(self):
         self.assertTrue(issubclass(ManifestLoader, AppConfig))
+
+
+class LoadFromManifestTests(SimpleTestCase):
+    def test_loader_not_subclass(self):
+        class Foo:
+            pass
+
+        APP_SETTINGS.update({'loader': Foo})
+
+        with self.assertRaises(CustomManifestLoaderNotValid):
+            render_template(
+                '{% load manifest %}'
+                '{% manifest "main.js" %}'
+            )
+
+        APP_SETTINGS.update({'loader': DefaultLoader})
+
+
+class LoaderABCTests(SimpleTestCase):
+    def test_if_meta(self):
+        self.assertTrue(hasattr(LoaderABC, 'register'))
+
+    def test_methods_not_implemented(self):
+        self.assertIsNone(LoaderABC.get_single_match('foo', 'bar'))
+        self.assertIsNone(LoaderABC.get_multi_match('foo', 'bar'))

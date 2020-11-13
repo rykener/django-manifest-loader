@@ -9,7 +9,9 @@ from django.conf import settings
 from django.core.cache import cache
 from django.utils.html import conditional_escape
 
-from manifest_loader.exceptions import WebpackManifestNotFound
+from manifest_loader.exceptions import WebpackManifestNotFound, \
+    CustomManifestLoaderNotValid
+from manifest_loader.loaders import DefaultLoader, LoaderABC
 
 
 register = template.Library()
@@ -18,6 +20,7 @@ APP_SETTINGS = {
     'output_dir': None,
     'manifest_file': 'manifest.json',
     'cache': False,
+    'loader': DefaultLoader,
 }
 
 if hasattr(settings, 'MANIFEST_LOADER'):
@@ -45,7 +48,7 @@ class ManifestNode(Node):
     def render(self, context):
         manifest_key = get_value(self.bits[1], context)
         manifest = get_manifest()
-        manifest_value = manifest.get(manifest_key, manifest_key)
+        manifest_value = load_from_manifest(manifest, key=manifest_key)
 
         url = StaticNode.handle_simple(manifest_value)
         if context.autoescape:
@@ -69,11 +72,9 @@ class ManifestMatchNode(template.Node):
 
         manifest = get_manifest()
 
-        matched_files = [file for file in manifest.keys() if
-                         fnmatch.fnmatch(file, search_string)]
-        mapped_files = [manifest.get(file) for file in matched_files]
+        files = load_from_manifest(manifest, pattern=search_string)
 
-        for file in mapped_files:
+        for file in files:
             url = StaticNode.handle_simple(file)
             if context.autoescape:
                 url = conditional_escape(url)
@@ -126,3 +127,17 @@ def get_value(string, context):
     if is_quoted_string(string):
         return string[1:-1]
     return context.get(string, '')
+
+
+def load_from_manifest(manifest, key=None, pattern=None):
+    loader = APP_SETTINGS['loader']
+
+    if not issubclass(loader, LoaderABC):
+        raise CustomManifestLoaderNotValid
+
+    if key:
+        return loader.get_single_match(manifest, key)
+    elif pattern:
+        return loader.get_multi_match(manifest, pattern)
+    return ''
+
