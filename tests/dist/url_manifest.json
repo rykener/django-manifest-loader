@@ -1,0 +1,7 @@
+{
+  "main.js": "http://localhost:8080/main.js",
+  "chunk1.js": "https://localhost:8080/chunk1.hash.js",
+  "chunk2.js": "chunk2.hash.js",
+  "chunk3.js": "http://localhost:8080/chunk3.hash.js",
+  "styles.css": "http://localhost:8080/styles.hash.css"
+}

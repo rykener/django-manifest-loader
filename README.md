@@ -139,6 +139,31 @@ This tag takes two arguments, a pattern to match against, according to the rules
 and a string to input the file urls into. The second argument must contain the string `{match}`, as it is what 
 is replaced with the urls. 
 
+## URLs in Manifest File
+
+If your manifest file points to full urls, instead of file names, the full url will be output instead of pointing 
+to the static file directory in Django.
+
+Example:
+
+```json
+{
+  "main.js": "http://localhost:8080/main.js"
+}
+```
+
+```djangotemplate
+{% load manifest %}
+
+<script src="{% manifest 'main.js' %}" />
+```
+
+Will output as:
+
+```html
+<script src="http://localhost:8080/main.js" />
+```
+
 # About
 
 At it's heart Django Manifest Loader is an extension to Django's built-in `static` templatetag. 
