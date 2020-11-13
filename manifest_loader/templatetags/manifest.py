@@ -1,13 +1,14 @@
 import json
 import os
-import fnmatch
 
 from django import template
 from django.templatetags.static import StaticNode
-from django.template.base import Node
 from django.conf import settings
 from django.core.cache import cache
 from django.utils.html import conditional_escape
+from django.core.validators import URLValidator
+from django.core.exceptions import ValidationError
+
 
 from manifest_loader.exceptions import WebpackManifestNotFound, \
     CustomManifestLoaderNotValid
@@ -20,7 +21,7 @@ APP_SETTINGS = {
     'output_dir': None,
     'manifest_file': 'manifest.json',
     'cache': False,
-    'loader': DefaultLoader,
+    'loader': DefaultLoader
 }
 
 if hasattr(settings, 'MANIFEST_LOADER'):
@@ -37,7 +38,7 @@ def do_manifest_match(parser, token):
     return ManifestMatchNode(token)
 
 
-class ManifestNode(Node):
+class ManifestNode(template.Node):
     def __init__(self, token):
         bits = token.split_contents()
         if len(bits) < 2:
@@ -50,10 +51,7 @@ class ManifestNode(Node):
         manifest = get_manifest()
         manifest_value = load_from_manifest(manifest, key=manifest_key)
 
-        url = StaticNode.handle_simple(manifest_value)
-        if context.autoescape:
-            url = conditional_escape(url)
-        return url
+        return make_url(manifest_value, context)
 
 
 class ManifestMatchNode(template.Node):
@@ -75,9 +73,7 @@ class ManifestMatchNode(template.Node):
         files = load_from_manifest(manifest, pattern=search_string)
 
         for file in files:
-            url = StaticNode.handle_simple(file)
-            if context.autoescape:
-                url = conditional_escape(url)
+            url = make_url(file, context)
             urls.append(url)
         output_tags = [output_tag.format(match=file) for file in urls]
         return '\n'.join(output_tags)
@@ -140,4 +136,23 @@ def load_from_manifest(manifest, key=None, pattern=None):
     elif pattern:
         return loader.get_multi_match(manifest, pattern)
     return ''
+
+
+def is_url(potential_url):
+    validate = URLValidator()
+    try:
+        validate(potential_url)
+        return True
+    except ValidationError:
+        return False
+
+
+def make_url(manifest_value, context):
+    if is_url(manifest_value):
+        url = manifest_value
+    else:
+        url = StaticNode.handle_simple(manifest_value)
+    if context.autoescape:
+        url = conditional_escape(url)
+    return url
 
