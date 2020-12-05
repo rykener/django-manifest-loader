@@ -64,8 +64,6 @@ MANIFEST_LOADER = {
     'output_dir': None,  # where webpack outputs to, if not set will search in STATICFILES_DIRS for the manifest. 
     'manifest_file': 'manifest.json',  # name of your manifest file
     'cache': False,  # recommended True for production, requires a server restart to pickup new values from the manifest.
-    'ignore_missing_assets': False,  # raises an exception if a file is not in the manifest.
-    'ignore_missing_match_tag': False,  # raises an exception if the {match} string is not found in the manifest_match tag
 }
 ```
 
@@ -141,6 +139,31 @@ This tag takes two arguments, a pattern to match against, according to the rules
 and a string to input the file urls into. The second argument must contain the string `{match}`, as it is what 
 is replaced with the urls. 
 
+## URLs in Manifest File
+
+If your manifest file points to full urls, instead of file names, the full url will be output instead of pointing 
+to the static file directory in Django.
+
+Example:
+
+```json
+{
+  "main.js": "http://localhost:8080/main.js"
+}
+```
+
+```djangotemplate
+{% load manifest %}
+
+<script src="{% manifest 'main.js' %}" />
+```
+
+Will output as:
+
+```html
+<script src="http://localhost:8080/main.js" />
+```
+
 # About
 
 At it's heart Django Manifest Loader is an extension to Django's built-in `static` templatetag. 
@@ -193,7 +216,7 @@ python runtests.py
 
 # check code coverage
 pip install coverage
-coverage run --source=manifest_loader/templatetags/ runtests.py
+coverage run --source=manifest_loader/ runtests.py
 coverage report
 ```
 

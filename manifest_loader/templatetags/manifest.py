@@ -3,18 +3,23 @@ import os
 import fnmatch
 
 from django import template
-from django.templatetags.static import do_static, StaticNode
+from django.templatetags.static import StaticNode
 from django.conf import settings
 from django.core.cache import cache
+from django.utils.html import conditional_escape
+from django.core.validators import URLValidator
+from django.core.exceptions import ValidationError
+
+
+from manifest_loader.exceptions import WebpackManifestNotFound
+
 
 register = template.Library()
 
 APP_SETTINGS = {
     'output_dir': None,
     'manifest_file': 'manifest.json',
-    'cache': False,
-    'ignore_missing_assets': False,
-    'ignore_missing_match_tag': False,
+    'cache': False
 }
 
 if hasattr(settings, 'MANIFEST_LOADER'):
@@ -23,65 +28,57 @@ if hasattr(settings, 'MANIFEST_LOADER'):
 
 @register.tag('manifest')
 def do_manifest(parser, token):
-    try:
-        tag_name, filename = parse_token(token)
-    except ValueError:
-        raise template.TemplateSyntaxError(
-            "%r tag given the wrong number of arguments" %
-            token.contents.split()[0]
-        )
-
-    manifest = get_manifest()
-
-    hashed_filename = manifest.get(filename)
-    if hashed_filename:
-        token.contents = "webpack '{}'".format(hashed_filename)
-    elif not APP_SETTINGS['ignore_missing_assets']:
-        raise AssetNotFoundInWebpackManifest(filename)
-
-    return do_static(parser, token)
+    return ManifestNode(token)
 
 
 @register.tag('manifest_match')
 def do_manifest_match(parser, token):
-    return ManifestNode(parser, token)
+    return ManifestMatchNode(token)
 
 
 class ManifestNode(template.Node):
-    def __init__(self, parser, token):
-
-        try:
-            tag_name, self.search_string, self.output_tag = parse_token(token)
-        except ValueError:
+    def __init__(self, token):
+        bits = token.split_contents()
+        if len(bits) < 2:
             raise template.TemplateSyntaxError(
-                "%r tag given the wrong number of arguments" %
-                token.contents.split()[0]
-            )
-        if '{match}' not in self.output_tag and not APP_SETTINGS['ignore_missing_match_tag']:
-            raise template.TemplateSyntaxError(
-                "manifest_match tag's second arg must contain the string {match}"
-            )
+                "'%s' takes one argument (name of file)" % bits[0])
+        self.bits = bits
 
-        self.manifest = get_manifest()
-        self.parser = parser
-        self.token = token
-        self.matched_files = [file for file in self.manifest.keys() if
-                              fnmatch.fnmatch(file, self.search_string)]
-        self.mapped_files = [self.manifest.get(file) for file in self.matched_files]
+    def render(self, context):
+        manifest_key = get_value(self.bits[1], context)
+        manifest = get_manifest()
+        manifest_value = manifest.get(manifest_key, manifest_key)
+        return make_url(manifest_value, context)
+
+
+class ManifestMatchNode(template.Node):
+    def __init__(self, token):
+        self.bits = token.split_contents()
+        if len(self.bits) < 3:
+            raise template.TemplateSyntaxError(
+                "'%s' takes two arguments (pattern to match and string to "
+                "insert into)" % self.bits[0]
+            )
 
     def render(self, context):
         urls = []
-        for file in self.mapped_files:
-            self.token.contents = "manifest_match '{}'".format(file)
-            node = StaticNode.handle_token(self.parser, self.token)
-            url = node.render(context)
+        search_string = get_value(self.bits[1], context)
+        output_tag = get_value(self.bits[2], context)
+
+        manifest = get_manifest()
+
+        matched_files = [file for file in manifest.keys() if
+                         fnmatch.fnmatch(file, search_string)]
+        mapped_files = [manifest.get(file) for file in matched_files]
+
+        for file in mapped_files:
+            url = make_url(file, context)
             urls.append(url)
-        output_tags = [self.output_tag.format(match=file) for file in urls]
+        output_tags = [output_tag.format(match=file) for file in urls]
         return '\n'.join(output_tags)
 
 
 def get_manifest():
-    """has test coverage"""
     cached_manifest = cache.get('webpack_manifest')
     if APP_SETTINGS['cache'] and cached_manifest:
         return cached_manifest
@@ -105,7 +102,6 @@ def get_manifest():
 
 
 def find_manifest_path():
-    """has test coverage"""
     static_dirs = settings.STATICFILES_DIRS
     if len(static_dirs) == 1:
         return os.path.join(static_dirs[0], APP_SETTINGS['manifest_file'])
@@ -116,48 +112,32 @@ def find_manifest_path():
     raise WebpackManifestNotFound('settings.STATICFILES_DIRS')
 
 
-def parse_token(token):
-    contents = token.split_contents()
-    if len(contents) == 2:
-        tag_name, file_name = contents
-        return tag_name, strip_quotes(tag_name, file_name)
-    elif len(contents) == 3:
-        tag_name, match_string, output_tag = contents
-        return tag_name, strip_quotes(tag_name, match_string), strip_quotes(tag_name, output_tag)
-    raise template.TemplateSyntaxError(
-        "%r tag given the wrong number of arguments" % token.contents.split()[0]
-    )
+def is_quoted_string(string):
+    if len(string) < 2:
+        return False
+    return string[0] == string[-1] and string[0] in ('"', "'")
 
 
-def strip_quotes(tag_name, content):
-    """has test coverage"""
-    if not isinstance(content, str):
-        raise template.TemplateSyntaxError(
-            "%r tag's argument should be a string in quotes"
-        )
-    if not (content[0] == content[-1] and
-            content[0] in ('"', "'")):
-        raise template.TemplateSyntaxError(
-            "%r tag's argument should be in quotes" % tag_name
-        )
-    return content[1:-1]
+def get_value(string, context):
+    if is_quoted_string(string):
+        return string[1:-1]
+    return context.get(string, '')
 
 
-class WebpackManifestNotFound(Exception):
-    def __init__(self, path, message='Manifest file named {} not found. '
-                                     'Looked for it at {}. Either your '
-                                     'settings are wrong or you still need to '
-                                     'generate the file.'):
-        super().__init__(message.format(APP_SETTINGS['manifest_file'], path))
+def is_url(potential_url):
+    validate = URLValidator()
+    try:
+        validate(potential_url)
+        return True
+    except ValidationError:
+        return False
 
 
-class AssetNotFoundInWebpackManifest(Exception):
-    def __init__(self, file, message='File {} is not referenced in the '
-                                     'manifest file. Make '
-                                     'sure webpack is outputting it or try '
-                                     'disabling the cache if enabled. If '
-                                     'you would like to suppress this '
-                                     'error set MANIFEST_LOADER['
-                                     '"ignore_missing_assets"] '
-                                     'to True'):
-        super().__init__(message.format(file))
+def make_url(manifest_value, context):
+    if is_url(manifest_value):
+        url = manifest_value
+    else:
+        url = StaticNode.handle_simple(manifest_value)
+    if context.autoescape:
+        url = conditional_escape(url)
+    return url
