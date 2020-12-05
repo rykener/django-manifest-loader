@@ -2,10 +2,14 @@ from django.conf import settings
 from django.test import SimpleTestCase
 from django.template import TemplateSyntaxError, Context, Template
 from django.core.cache import cache
+from django.apps import AppConfig
 
-from manifest_loader.templatetags.manifest import strip_quotes, \
-    find_manifest_path, WebpackManifestNotFound, get_manifest, APP_SETTINGS, \
-    AssetNotFoundInWebpackManifest
+from manifest_loader.templatetags.manifest import find_manifest_path, \
+    get_manifest, APP_SETTINGS, is_quoted_string, is_url
+
+from manifest_loader.apps import ManifestLoader
+
+from manifest_loader.exceptions import WebpackManifestNotFound
 
 
 NEW_STATICFILES_DIRS = [
@@ -22,26 +26,25 @@ def render_template(string, context=None):
     return Template(string).render(context)
 
 
-class StripQuotesTests(SimpleTestCase):
-    def test_can_remove_quotes(self):
-        self.assertEqual(
-            strip_quotes('test_case', "'foobar'"),
-            'foobar'
-        )
-        self.assertEqual(
-            strip_quotes('test_case', '"foobar"'),
-            'foobar'
-        )
+class IsUrlTests(SimpleTestCase):
+    def test_is_url(self):
+        self.assertTrue(is_url('http://localhost:8080'))
+        self.assertTrue(is_url('https://localhost:8080'))
+        self.assertTrue(is_url('http://localhost'))
+        self.assertTrue(is_url('http://124.22.2.119:8080'))
+        self.assertTrue(is_url('https://example.com/static/main.js'))
+        self.assertFalse(is_url('main.hkl328o.js'))
+        self.assertFalse(is_url('http:hello.js'))
+        self.assertFalse(is_url('https.js'))
 
-    def test_will_raise_exception(self):
-        with self.assertRaises(TemplateSyntaxError):
-            strip_quotes('test_case', 'foobar')
-        with self.assertRaises(TemplateSyntaxError):
-            strip_quotes('test_case', 'foobar"')
-        with self.assertRaises(TemplateSyntaxError):
-            strip_quotes('test_case', 1234)
-        with self.assertRaises(TemplateSyntaxError):
-            strip_quotes('test_case', {'doo': 'bar'})
+
+class IsQuotedStringTests(SimpleTestCase):
+    def test_can_remove_quotes(self):
+        self.assertTrue(is_quoted_string('"foo"'))
+        self.assertTrue(is_quoted_string("'foo'"))
+        self.assertFalse(is_quoted_string("foo"))
+        self.assertFalse(is_quoted_string('foo'))
+        self.assertFalse(is_quoted_string('f'))
 
 
 class FindManifestPathTests(SimpleTestCase):
@@ -135,6 +138,7 @@ class GetManifestTests(SimpleTestCase):
 
 class ManifestTagTests(SimpleTestCase):
     def test_basic_usage(self):
+        APP_SETTINGS.update({'manifest_file': 'manifest.json'})
         rendered = render_template(
             '{% load manifest %}'
             '{% manifest "main.js" %}'
@@ -144,7 +148,30 @@ class ManifestTagTests(SimpleTestCase):
             '/static/main.e12dfe2f9b185dea03a4.js'
         )
 
+    def test_with_var_no_string(self):
+        APP_SETTINGS.update({'manifest_file': 'manifest.json'})
+        rendered = render_template(
+            '{% load manifest %}'
+            '{% manifest foo %}',
+            {'foo': 'main.js'}
+        )
+        self.assertEqual(
+            rendered,
+            '/static/main.e12dfe2f9b185dea03a4.js'
+        )
+
+    def test_with_undefined_var(self):
+        rendered = render_template(
+            '{% load manifest %}'
+            '{% manifest foo %}'
+        )
+        self.assertEqual(
+            rendered,
+            '/static/'
+        )
+
     def test_non_default_static_url(self):
+        APP_SETTINGS.update({'manifest_file': 'manifest.json'})
         with self.settings(STATIC_URL='/foo/'):
             rendered = render_template(
                 '{% load manifest %}'
@@ -162,22 +189,7 @@ class ManifestTagTests(SimpleTestCase):
                 '{% manifest %}'
             )
 
-    def test_too_many_args(self):
-        with self.assertRaises(TemplateSyntaxError):
-            render_template(
-                '{% load manifest %}'
-                '{% manifest "foo" "bar" %}'
-            )
-
     def test_missing_asset(self):
-        with self.assertRaises(AssetNotFoundInWebpackManifest):
-            render_template(
-                '{% load manifest %}'
-                '{% manifest "foo.js" %}'
-            )
-
-    def test_ignore_missing_assets(self):
-        APP_SETTINGS.update({'ignore_missing_assets': True})
         rendered = render_template(
             '{% load manifest %}'
             '{% manifest "foo.js" %}'
@@ -186,11 +198,24 @@ class ManifestTagTests(SimpleTestCase):
             rendered,
             '/static/foo.js'
         )
-        APP_SETTINGS.update({'ignore_missing_assets': False})
+
+    def test_url_in_manifest(self):
+        APP_SETTINGS.update({'manifest_file': 'url_manifest.json'})
+        rendered = render_template(
+            '{% load manifest %}'
+            '{% manifest "main.js" %}'
+        )
+        self.assertEqual(
+            rendered,
+            'http://localhost:8080/main.js'
+        )
+        APP_SETTINGS.update({'manifest_file': 'manifest.json'})
+
 
 
 class ManifestMatchTagTests(SimpleTestCase):
     def test_renders_correctly(self):
+        APP_SETTINGS.update({'manifest_file': 'manifest.json'})
         rendered = render_template(
             '{% load manifest %}'
             '{% manifest_match "*.css" "<foo {match} bar>" %}'
@@ -223,15 +248,7 @@ class ManifestMatchTagTests(SimpleTestCase):
             '<script src="/static/chunk3.hash.js" />'
         )
 
-    def test_handles_missing_match_placeholder(self):
-        with self.assertRaises(TemplateSyntaxError):
-            render_template(
-                '{% load manifest %}'
-                "{% manifest_match '*.css' 'foo' %}"
-            )
-
     def test_ignores_missing_match_placeholder(self):
-        APP_SETTINGS.update({'ignore_missing_match_tag': True})
         rendered = render_template(
             '{% load manifest %}'
             "{% manifest_match '*.css' 'foo' %}"
@@ -240,7 +257,6 @@ class ManifestMatchTagTests(SimpleTestCase):
             rendered,
             'foo'
         )
-        APP_SETTINGS.update({'ignore_missing_match_tag': False})
 
     def test_handles_missing_arg(self):
         with self.assertRaises(TemplateSyntaxError):
@@ -248,3 +264,23 @@ class ManifestMatchTagTests(SimpleTestCase):
                 '{% load manifest %}'
                 "{% manifest_match '*.css' %}"
             )
+
+    def test_match_urls(self):
+        APP_SETTINGS.update({'manifest_file': 'url_manifest.json'})
+        rendered = render_template(
+            '{% load manifest %}'
+            '{% manifest_match "*.js" "<script src=\"{match}\" />" %}'
+        )
+        self.assertEqual(
+            rendered,
+            '<script src="http://localhost:8080/main.js" />\n'
+            '<script src="https://localhost:8080/chunk1.hash.js" />\n'
+            '<script src="/static/chunk2.hash.js" />\n'
+            '<script src="http://localhost:8080/chunk3.hash.js" />'
+        )
+        APP_SETTINGS.update({'manifest_file': 'manifest.json'})
+
+
+class AppConfigTests(SimpleTestCase):
+    def test_the_django_app(self):
+        self.assertTrue(issubclass(ManifestLoader, AppConfig))
