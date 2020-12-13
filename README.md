@@ -125,14 +125,14 @@ browser cache every time the file is updated. This ensures that your users alway
 ```djangotemplate
 {% load manifest %}
 
-{% manifest_match '*.js' '<script src="{match}"/>' %}
+{% manifest_match '*.js' '<script src="{match}"></script>' %}
 ```
 
 turns into
 
 ```html
-<script src="/static/vendors~main.3ad032adfa281590f2a21.js"/>
-<script src="/static/main.8f7705adfa281590b8dd.js"/>
+<script src="/static/vendors~main.3ad032adfa281590f2a21.js"></script>
+<script src="/static/main.8f7705adfa281590b8dd.js"></script>
 ```
 
 This tag takes two arguments, a pattern to match against, according to the rules of the python fnmatch package, 
@@ -155,13 +155,13 @@ Example:
 ```djangotemplate
 {% load manifest %}
 
-<script src="{% manifest 'main.js' %}" />
+<script src="{% manifest 'main.js' %}"></script>
 ```
 
 Will output as:
 
 ```html
-<script src="http://localhost:8080/main.js" />
+<script src="http://localhost:8080/main.js"></script>
 ```
 
 # About
