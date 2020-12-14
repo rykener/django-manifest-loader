@@ -26,7 +26,6 @@ split chunks._
 * For an in-depth look at this package, check out [this blog post here](https://medium.com/@shonin/django-and-webpack-now-work-together-seamlessly-a90cffdbab8e)
 * [Quick start guide](https://medium.com/@shonin/django-and-webpack-in-4-short-steps-b39bd3380c71)
 
-
 ## Installation
 
 ```shell script
@@ -162,6 +161,81 @@ Will output as:
 
 ```html
 <script src="http://localhost:8080/main.js" />
+```
+
+## Custom Loaders
+
+Custom loaders allow you to implement your own means of extracting data from your manifest file. If your manifest
+file has a non-standard structure, this is how you can tell `django-manifest-loader` how to read it.
+
+First import the loader parent abstract class, and subclass it in your new loader class. Your new loader must have two
+static methods that each take two required arguments: `get_single_match(manifest, key)` and 
+`get_multi_match(manifest, pattern)`.
+
+```python
+from manifest_loader.loaders import LoaderABC
+
+class MyCustomLoader(LoaderABC):
+    @staticmethod
+    def get_single_match(manifest, key):
+        pass
+
+    @staticmethod
+    def get_multi_match(manifest, pattern):
+        pass
+```
+
+`get_single_match` - returns a `String`, finds a single file in your manifest file, according to the `key`
+
+`get_multi_match` - returns a `List` of files in your manifest, according to the `pattern`
+
+`manifest` - this is your full manifest file, after being processed by `json.load()`. It will be a dictionary or list
+    depending on which it is in your manifest file. 
+    
+`key` - `String`; the argument passed into the `manifest` template tag. e.g.: in the template tag `{% manifest 'index.js' %}`, 
+    the string `'index.js'` is sent to `get_single_match` as `key` (without surrounding quotes)
+    
+`pattern` - `String`; the first argument passed into the `manifest_match` template tag. e.g.: in the template tag 
+    `{% manifest_match '*.js' '<script src="{match}"></script>' %}`, the string `'*.js'` is sent to `get_multi_match` 
+    as `pattern` (without surrounding quotes)
+    
+**Below is the code for the default loader, which is a good starting point:**
+
+```python
+import fnmatch
+from manifest_loader.loaders import LoaderABC
+
+class DefaultLoader(LoaderABC):
+    @staticmethod
+    def get_single_match(manifest, key):
+        return manifest.get(key, key)
+
+    @staticmethod
+    def get_multi_match(manifest, pattern):
+        matched_files = [file for file in manifest.keys() if
+                         fnmatch.fnmatch(file, pattern)]
+        return [manifest.get(file) for file in matched_files]
+``` 
+
+In the above example, `get_single_match` retrieves the value on the `manifest` dictionary that matches the key `key`. If
+the key does not exist on the dictionary, it instead returns the key.
+
+`get_multi_match` uses the recommended `fnmatch` python standard library to do pattern matching. You could also use 
+regex in it's place. Here, it iterates through all the keys in the manifest file, and builds a list of the keys that 
+match the given `pattern`. It then returns a list of the values associated with those matched keys. 
+
+### Activating the custom loader 
+
+To put the custom loader into use it needs to be registered in your `settings.py`.
+
+```python
+# settings.py
+from my_app.utils import MyCustomLoader
+
+MANIFEST_LOADER = {
+    ...
+    'loader': MyCustomLoader
+}
 ```
 
 # About
