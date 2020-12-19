@@ -91,6 +91,7 @@ module.exports = {
 };
 ```
 
+
 # Usage
 
 Django Manifest Loader comes with two template tags that house all logic. The `manifest` tag takes a single string 
@@ -219,6 +220,8 @@ pip install coverage
 coverage run --source=manifest_loader/ runtests.py
 coverage report
 ```
+
+
 
 ### Contributing
 
