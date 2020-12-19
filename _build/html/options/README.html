@@ -141,6 +141,38 @@ you shouldn’t be modifying it.</p>
 </pre></div>
 </div>
 </div>
+<div class="section" id="manifestmatch-node">
+<h2>ManifestMatch Node<a class="headerlink" href="#manifestmatch-node" title="Permalink to this headline">¶</a></h2>
+<p>Initalizes and renders the creation of the manifest match tag</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>    <span class="sd">&quot;&quot;&quot; Initalizes the creation of the manifest match template tag&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">token</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bits</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">split_contents</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bits</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">template</span><span class="o">.</span><span class="n">TemplateSyntaxError</span><span class="p">(</span>
+                <span class="s2">&quot;&#39;</span><span class="si">%s</span><span class="s2">&#39; takes two arguments (pattern to match and string to &quot;</span>
+                <span class="s2">&quot;insert into)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">bits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Renders the manifest match tag&quot;&quot;&quot;</span>
+        <span class="n">urls</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">search_string</span> <span class="o">=</span> <span class="n">get_value</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bits</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">context</span><span class="p">)</span>
+        <span class="n">output_tag</span> <span class="o">=</span> <span class="n">get_value</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bits</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">context</span><span class="p">)</span>
+
+        <span class="n">manifest</span> <span class="o">=</span> <span class="n">get_manifest</span><span class="p">()</span>
+
+        <span class="n">matched_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">file</span> <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">manifest</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span>
+                         <span class="n">fnmatch</span><span class="o">.</span><span class="n">fnmatch</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">search_string</span><span class="p">)]</span>
+        <span class="n">mapped_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">file</span><span class="p">)</span> <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">matched_files</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">mapped_files</span><span class="p">:</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="n">make_url</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+            <span class="n">urls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">output_tags</span> <span class="o">=</span> <span class="p">[</span><span class="n">output_tag</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">match</span><span class="o">=</span><span class="n">file</span><span class="p">)</span> <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">urls</span><span class="p">]</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_tags</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
 </div>
 <div class="section" id="webpack-configuration">
 <h1>Webpack configuration<a class="headerlink" href="#webpack-configuration" title="Permalink to this headline">¶</a></h1>
@@ -309,6 +341,7 @@ This is an open source license granting broad permissions to modify and redistri
 <li class="toctree-l2"><a class="reference internal" href="#manifest-tag">Manifest Tag</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#manifest-match-tag">Manifest Match Tag</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#manifestnode">ManifestNode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#manifestmatch-node">ManifestMatch Node</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="#webpack-configuration">Webpack configuration</a></li>
@@ -358,7 +391,7 @@ This is an open source license granting broad permissions to modify and redistri
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2020, christopherlandaverde.
+      &copy;3-Clause BSD License.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 3.3.1</a>

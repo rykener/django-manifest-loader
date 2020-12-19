@@ -123,7 +123,37 @@ Initalizes and renders the creation of the manifest  tag
         manifest_value = manifest.get(manifest_key, manifest_key)
         return make_url(manifest_value, context)
 ```
+### ManifestMatch Node
+Initalizes and renders the creation of the manifest match tag 
 
+```python
+    """ Initalizes the creation of the manifest match template tag"""
+    def __init__(self, token):
+        self.bits = token.split_contents()
+        if len(self.bits) < 3:
+            raise template.TemplateSyntaxError(
+                "'%s' takes two arguments (pattern to match and string to "
+                "insert into)" % self.bits[0]
+            )
+
+    def render(self, context):
+        """ Renders the manifest match tag"""
+        urls = []
+        search_string = get_value(self.bits[1], context)
+        output_tag = get_value(self.bits[2], context)
+
+        manifest = get_manifest()
+
+        matched_files = [file for file in manifest.keys() if
+                         fnmatch.fnmatch(file, search_string)]
+        mapped_files = [manifest.get(file) for file in matched_files]
+
+        for file in mapped_files:
+            url = make_url(file, context)
+            urls.append(url)
+        output_tags = [output_tag.format(match=file) for file in urls]
+        return '\n'.join(output_tags)
+```
 
 ## Webpack configuration
 

@@ -19,8 +19,8 @@ settings.configure()
 # -- Project information -----------------------------------------------------
 
 project = 'django-manifest-loader'
-copyright = '2020, christopherlandaverde'
-author = 'christopherlandaverde'
+copyright = '3-Clause BSD License'
+author = 'django-manifest-loader'
 
 # The full version, including alpha/beta/rc tags
 release = '1.01'
