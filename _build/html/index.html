@@ -1,0 +1,151 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Django-manifest-loader’s documentation! &#8212; django-manifest-loader 1.01 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Django Manifest Loader" href="options/README.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="django-manifest-loader-s-documentation">
+<h1>Django-manifest-loader’s documentation!<a class="headerlink" href="#django-manifest-loader-s-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="options/README.html">Django Manifest Loader</a></li>
+<li class="toctree-l1"><a class="reference internal" href="options/README.html#about">About</a></li>
+<li class="toctree-l1"><a class="reference internal" href="options/README.html#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="options/README.html#django-setup">Django Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="options/README.html#reference">Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="options/README.html#manifest-tag">Manifest Tag</a></li>
+<li class="toctree-l2"><a class="reference internal" href="options/README.html#manifest-match-tag">Manifest Match Tag</a></li>
+<li class="toctree-l2"><a class="reference internal" href="options/README.html#manifestnode">ManifestNode</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="options/README.html#webpack-configuration">Webpack configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="options/README.html#usage">Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="options/README.html#single-file-use-for-cache-busting-manifest-tag">Single file use (for cache busting) (<code class="docutils literal notranslate"><span class="pre">manifest</span></code> tag)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="options/README.html#split-chunks-manifest-match-tag">Split chunks (<code class="docutils literal notranslate"><span class="pre">manifest_match</span></code> tag)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="options/README.html#urls-in-manifest-file">URLs in Manifest File</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="options/README.html#suggested-project-structure">Suggested Project Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="options/README.html#cache-busting-and-split-chunks-the-problem-this-package-solves">Cache Busting and Split Chunks (the problem this package solves)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="options/README.html#tests-and-code-coverage">Tests and Code Coverage</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="options/README.html#contributing">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="options/README.html#license">License</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">django-manifest-loader</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="options/README.html">Django Manifest Loader</a></li>
+<li class="toctree-l1"><a class="reference internal" href="options/README.html#about">About</a></li>
+<li class="toctree-l1"><a class="reference internal" href="options/README.html#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="options/README.html#django-setup">Django Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="options/README.html#reference">Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="options/README.html#webpack-configuration">Webpack configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="options/README.html#usage">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="options/README.html#urls-in-manifest-file">URLs in Manifest File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="options/README.html#contributing">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="options/README.html#license">License</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="options/README.html" title="next chapter">Django Manifest Loader</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, christopherlandaverde.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
