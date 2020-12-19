@@ -10,3 +10,4 @@ build
 !tests/dist
 .coverage
 htmlcov
+_build
