@@ -308,9 +308,7 @@ coverage report
 
 # Documentation
 
-Documentation was developed using Sphinx
-
-https://www.sphinx-doc.org/en/master/usage/configuration.html
+Documentation was developed using [Sphinx](https://www.sphinx-doc.org/en/master/usage/configuration.html).
 
 
 ## Installation
@@ -319,10 +317,12 @@ In order to install sphinx
 ```shell script
 pip install -U sphinx 
 ```
+
 ## Dependencies for installation
+In order to use .md with sphynx it requires Recommonmark. 
 
 Recommonmark:
-In order to install recommonmark:
+In order to install recommonmark
 
 ```shell script
 pip install recommonmark
