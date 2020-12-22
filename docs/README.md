@@ -203,21 +203,22 @@ def find_manifest_path():
 ```python
 
 def is_quoted_string(string):
-    """Method validates if it's a stirng"""
+    """Method validates if it's a string"""
     if len(string) < 2:
         return False
     return string[0] == string[-1] and string[0] in ('"', "'")
 ```
 
 ### Value Validator 
+Method validates if it's a string"
 
 ```python
 
-def is_quoted_string(string):
-    """Method validates if it's a stirng"""
-    if len(string) < 2:
-        return False
-    return string[0] == string[-1] and string[0] in ('"', "'")
+def get_value(string, context):
+    """Method validates the value of the string"""
+    if is_quoted_string(string):
+        return string[1:-1]
+    return context.get(string, '')
 ```
 
 
