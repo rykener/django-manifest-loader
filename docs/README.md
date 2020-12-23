@@ -94,7 +94,7 @@ def do_manifest(parser, token):
 
 ```
 ### Manifest Match Tag
-Returns manifest Match tag
+Returns manifest_match tag
 
 ```python
 @register.tag('manifest_match')
@@ -103,10 +103,11 @@ def do_manifest_match(parser, token):
 
 ```
 ### ManifestNode
-Initializes and renders the creation of the manifest  tag 
+Initializes and renders the creation of the manifest tag and 
 
 
 ```python
+ class ManifestNode(template.Node):
     """ Initalizes the creation of the manifest template tag"""
     def __init__(self, token):
         bits = token.split_contents()
@@ -127,6 +128,7 @@ Initializes and renders the creation of the manifest  tag
 Initalizes and renders the creation of the manifest match tag 
 
 ```python
+class ManifestMatchNode(template.Node):
     """ Initalizes the creation of the manifest match template tag"""
     def __init__(self, token):
         self.bits = token.split_contents()
@@ -153,12 +155,8 @@ Initalizes and renders the creation of the manifest match tag
             urls.append(url)
         output_tags = [output_tag.format(match=file) for file in urls]
         return '\n'.join(output_tags)
-```
 
-### Get Manifest file 
-Returns the manifest file from the output directory
 
-```python
 def get_manifest():
     """ Returns the manifest file from the output directory """
     cached_manifest = cache.get('webpack_manifest')
@@ -183,11 +181,11 @@ def get_manifest():
     return data
 ```
 
-### Finding the Manifest File
 
+### Finding the Manifest File
+Returns manifest_file
 ```python
 def find_manifest_path():
-    """ Returns manifest_file """
     static_dirs = settings.STATICFILES_DIRS
     if len(static_dirs) == 1:
         return os.path.join(static_dirs[0], APP_SETTINGS['manifest_file'])
@@ -199,23 +197,23 @@ def find_manifest_path():
 
 ```
 ### String Validator 
+Method validates if it's a string
 
 ```python
 
 def is_quoted_string(string):
-    """Method validates if it's a string"""
     if len(string) < 2:
         return False
     return string[0] == string[-1] and string[0] in ('"', "'")
 ```
 
 ### Value Validator 
-Method validates if it's a string"
+Method validates the value 
 
 ```python
 
 def get_value(string, context):
-    """Method validates the value of the string"""
+    
     if is_quoted_string(string):
         return string[1:-1]
     return context.get(string, '')
@@ -223,11 +221,12 @@ def get_value(string, context):
 
 
 ### URL Validator 
+Function validates if it's a URL 
 
 ```python
 
 def is_url(potential_url):
-    """Function validates if it's a URL """
+ 
    
     validate = URLValidator()
     try:
@@ -239,10 +238,11 @@ def is_url(potential_url):
 ```
 
 ### URL Generator 
+Returns the URL that will be outputed to the static file directory
 
 ```python
 def make_url(manifest_value, context):
-    """ Returns the URL that will be outputed to the static file directory"""
+
 
     if is_url(manifest_value):
         url = manifest_value
@@ -418,8 +418,6 @@ pip install -U sphinx
 ## Dependencies for installation
 To use .md with Sphynx, it requires Recommonmark. 
 
-Recommonmark:
-In order to install recommonmark
 
 ```shell script
 pip install recommonmark
