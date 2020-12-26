@@ -27,16 +27,19 @@ if hasattr(settings, 'MANIFEST_LOADER'):
 
 
 @register.tag('manifest')
-def do_manifest(parser, token):
+def do_manifest(parser, token): 
+    """Returns the manifest tag """
     return ManifestNode(token)
-
 
 @register.tag('manifest_match')
 def do_manifest_match(parser, token):
+    """Returns manifest match tag"""
     return ManifestMatchNode(token)
 
 
+
 class ManifestNode(template.Node):
+    """ Initalizes the creation of the manifest template tag"""
     def __init__(self, token):
         bits = token.split_contents()
         if len(bits) < 2:
@@ -44,7 +47,9 @@ class ManifestNode(template.Node):
                 "'%s' takes one argument (name of file)" % bits[0])
         self.bits = bits
 
+
     def render(self, context):
+        """Renders the creation of the manifest tag"""
         manifest_key = get_value(self.bits[1], context)
         manifest = get_manifest()
         manifest_value = manifest.get(manifest_key, manifest_key)
@@ -52,6 +57,7 @@ class ManifestNode(template.Node):
 
 
 class ManifestMatchNode(template.Node):
+    """ Initalizes the creation of the manifest match template tag"""
     def __init__(self, token):
         self.bits = token.split_contents()
         if len(self.bits) < 3:
@@ -61,6 +67,7 @@ class ManifestMatchNode(template.Node):
             )
 
     def render(self, context):
+        """ Renders the manifest match tag"""
         urls = []
         search_string = get_value(self.bits[1], context)
         output_tag = get_value(self.bits[2], context)
@@ -79,6 +86,7 @@ class ManifestMatchNode(template.Node):
 
 
 def get_manifest():
+    """ Returns the manifest file from the output directory """
     cached_manifest = cache.get('webpack_manifest')
     if APP_SETTINGS['cache'] and cached_manifest:
         return cached_manifest
@@ -102,6 +110,7 @@ def get_manifest():
 
 
 def find_manifest_path():
+    """ Returns manifest_file """
     static_dirs = settings.STATICFILES_DIRS
     if len(static_dirs) == 1:
         return os.path.join(static_dirs[0], APP_SETTINGS['manifest_file'])
@@ -113,18 +122,22 @@ def find_manifest_path():
 
 
 def is_quoted_string(string):
+    """Method validates if it's a stirng"""
     if len(string) < 2:
         return False
     return string[0] == string[-1] and string[0] in ('"', "'")
 
 
 def get_value(string, context):
+    """Method validates the value of the string"""
     if is_quoted_string(string):
         return string[1:-1]
     return context.get(string, '')
 
 
 def is_url(potential_url):
+    """Function validates if it's a URL """
+   
     validate = URLValidator()
     try:
         validate(potential_url)
@@ -134,6 +147,8 @@ def is_url(potential_url):
 
 
 def make_url(manifest_value, context):
+    """ Returns the URL that will be outputed to the static file directory"""
+
     if is_url(manifest_value):
         url = manifest_value
     else:
