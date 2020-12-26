@@ -11,15 +11,11 @@ Django-manifest-loader's documentation!
     :members:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    docs/README
+   docs/usage
+   docs/reference
+   docs/docs_license
 
 
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
