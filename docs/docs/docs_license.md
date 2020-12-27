@@ -1,14 +1,14 @@
 # Improve Documentation
 
-Thanks to everyone who has and who will one day contribute to the documentation for this project. Pull requests for documentation fixes, clarifications, and restructuring are all welcome. [Open a pull request here](https://github.com/shonin/django-manifest-loader).
+Thanks to everyone who has and who will one day contribute to the documentation for this project. Pull requests or issues filed for documentation fixes, clarifications, and restructuring are all welcome. [Open a pull request or issue here](https://github.com/shonin/django-manifest-loader).
 
-Documentation was developed using [Sphinx](https://www.sphinx-doc.org/en/master/usage/configuration.html).
+Documentation is developed using [Sphinx](https://www.sphinx-doc.org/en/master/usage/configuration.html).
 
 
 ## Installation
 In order to install sphinx
 
-```shell script
+```shell
 pip install -U sphinx 
 ```
 
@@ -16,7 +16,7 @@ pip install -U sphinx
 To use .md with Sphynx, it requires Recommonmark. 
 
 
-```shell script
+```shell
 pip install recommonmark
 ```
 

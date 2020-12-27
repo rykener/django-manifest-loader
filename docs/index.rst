@@ -4,7 +4,7 @@ Django Manifest Loader
 | |Stable Status| |Dev Status| |contributions welcome|
 
 Reads a manifest file to import your assets into a Django template. Find
-the URL for a single asset, or the URLs for multiple assets by using
+the URL for a single asset or the URLs for multiple assets by using
 pattern matching against the file names. Path resolution handled using
 Django's built-in ``staticfiles`` app. Minimal configuraton,
 cache-busting, split chunks.
@@ -14,6 +14,7 @@ cache-busting, split chunks.
 
    docs/about_install
    docs/usage
+   docs/philosophy
    docs/reference
    docs/docs_license
 

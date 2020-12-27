@@ -1,5 +1,11 @@
 # About
 
+Reads a manifest file to import your assets into a Django template. Find
+the URL for a single asset or the URLs for multiple assets by using
+pattern matching against the file names. Path resolution handled using
+Django's built-in ``staticfiles`` app. Minimal configuraton,
+cache-busting, split chunks.
+
 At its heart Django Manifest Loader is an extension to Django's built-in `static` template tag. 
 When you use the provided `{% manifest %}` template tag, all the manifest loader is doing is 
 taking the input string, looking it up against the manifest file, modifying the value, and then
