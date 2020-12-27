@@ -1,17 +1,4 @@
-## Django Manifest Loader 
-
-[![Build Status](https://img.shields.io/travis/shonin/django-manifest-loader/main?label=latest%20published%20branch&style=flat-square
-)](https://travis-ci.org/shonin/django-manifest-loader)
-[![Build Status](https://img.shields.io/travis/shonin/django-manifest-loader/dev?label=development%20branch&style=flat-square
-)](https://travis-ci.org/shonin/django-manifest-loader)
-[![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat-square)](#)
-
-
-_Always have access to the latest webpack assets, with minimal configuration. Wraps Django's built in 
-`{% static %}` templatetag to allow you to link to assets according to a webpack manifest file. Handles webpack's 
-split chunks._
-
-## About
+# About
 
 At its heart Django Manifest Loader is an extension to Django's built-in `static` template tag. 
 When you use the provided `{% manifest %}` template tag, all the manifest loader is doing is 
@@ -36,19 +23,19 @@ similarly, just with a bit of additional logic to find all the necessary files a
 * For an in-depth look at this package, check out [this blog post here](https://medium.com/@shonin/django-and-webpack-now-work-together-seamlessly-a90cffdbab8e)
 * [Quick start guide](https://medium.com/@shonin/django-and-webpack-in-4-short-steps-b39bd3380c71)
 
-### Additional resources
+## Additional resources
 
 * [What is cache busting?](https://www.keycdn.com/support/what-is-cache-busting)
 * [The 100% correct way to split your chunks with Webpack](https://medium.com/hackernoon/the-100-correct-way-to-split-your-chunks-with-webpack-f8a9df5b7758)
 
-## Installation
+# Installation
 
 ```shell script
 pip install django-manifest-loader
 ```
 
 
-### Django Setup
+## Django Setup
 
 ```python
 # settings.py
@@ -79,11 +66,14 @@ MANIFEST_LOADER = {
     'output_dir': None,  # where webpack outputs to, if not set, will search in STATICFILES_DIRS for the manifest. 
     'manifest_file': 'manifest.json',  # name of your manifest file
     'cache': False,  # recommended True for production, requires a server restart to pick up new values from the manifest.
+    'loader': DefaultLoader  # how the loader reading manifest files. 
 }
 ```
 
 
-### Webpack configuration
+## webpack configuration
+
+_webpack is not technically required: Django Manifest Loader by default expects a manifest file in the form output by [webpack Manifest Plugin](https://github.com/shellscape/webpack-manifest-plugin). See the section on custom loaders for information on how to use a different type of manifest file._
 
 You must install the `WebpackManifestPlugin`. Optionally, but recommended, is to install the `CleanWebpackPlugin`.
 
@@ -108,14 +98,14 @@ module.exports = {
 ```
 
 
-## Suggested Project Structure
+# Example Project Structure
 
 ```
 BASE_DIR
-├── dist
+├── dist  # webpack's output directory
 │   ├── index.f82c02a005f7f383003c.js
 │   └── manifest.json
-├── frontend
+├── frontend  # a django app
 │   ├── apps.py
 │   ├── src
 │   │   └── index.js

@@ -1,5 +1,5 @@
 
-## Reference
+## API Reference
 
 ### Manifest Tag
 Returns the manifest tag
