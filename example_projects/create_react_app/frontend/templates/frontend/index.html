@@ -1,0 +1,7 @@
+{% load manifest %}
+
+{% manifest_match '*.css' '<link rel="stylesheet" href="{match}">' %}
+
+<div id="root"></div>
+
+{% manifest_match '*.js' '<script src="{match}"></script>' %}

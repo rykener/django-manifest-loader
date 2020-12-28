@@ -1,5 +1,6 @@
 import json
 import os
+import requests
 
 from django import template
 from django.templatetags.static import StaticNode
@@ -21,7 +22,8 @@ APP_SETTINGS = {
     'output_dir': None,
     'manifest_file': 'manifest.json',
     'cache': False,
-    'loader': DefaultLoader
+    'loader': DefaultLoader,
+    'external_site': None
 }
 
 if hasattr(settings, 'MANIFEST_LOADER'):
@@ -92,17 +94,24 @@ def get_manifest():
     if APP_SETTINGS['cache'] and cached_manifest:
         return cached_manifest
 
-    if APP_SETTINGS['output_dir']:
-        manifest_path = os.path.join(APP_SETTINGS['output_dir'],
-                                     APP_SETTINGS['manifest_file'])
+    if APP_SETTINGS['external_site'] is not None:
+        response = requests.get('{url}/{manifest}'.format(
+                url=APP_SETTINGS['external_site'],
+                manifest=APP_SETTINGS['manifest_file']
+            ))
+        data = response.json()
     else:
-        manifest_path = find_manifest_path()
+        if APP_SETTINGS['output_dir']:
+            manifest_path = os.path.join(APP_SETTINGS['output_dir'],
+                                         APP_SETTINGS['manifest_file'])
+        else:
+            manifest_path = find_manifest_path()
 
-    try:
-        with open(manifest_path) as manifest_file:
-            data = json.load(manifest_file)
-    except FileNotFoundError:
-        raise WebpackManifestNotFound(manifest_path)
+        try:
+            with open(manifest_path) as manifest_file:
+                data = json.load(manifest_file)
+        except FileNotFoundError:
+            raise WebpackManifestNotFound(manifest_path)
 
     if APP_SETTINGS['cache']:
         cache.set('webpack_manifest', data)
@@ -165,6 +174,8 @@ def make_url(manifest_value, context):
 
     if is_url(manifest_value):
         url = manifest_value
+    elif APP_SETTINGS['external_site'] is not None:
+        url = '{url}/{manifest_value}'.format(url=APP_SETTINGS['external_site'], manifest_value=manifest_value)
     else:
         url = StaticNode.handle_simple(manifest_value)
     if context.autoescape:
