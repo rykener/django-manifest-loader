@@ -21,13 +21,13 @@ cache-busting, split chunks.
 
 ```djangotemplate
 {% load manifest %}
-<script src="{% manifest 'main.js' %}" />
+<script src="{% manifest 'main.js' %}"></script>
 ```
 
 **Into this**
 
 ```djangotemplate
-<script src="/static/main.8f7705adfa281590b8dd.js" />
+<script src="/static/main.8f7705adfa281590b8dd.js"></script>
 ```
 
 * [Official documentation](https://django-manifest-loader.readthedocs.io/en/latest/index.html)
