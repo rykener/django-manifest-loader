@@ -1,46 +1,31 @@
-import json
-import os
 
-from django import template
-from django.templatetags.static import StaticNode
-from django.conf import settings
-from django.core.cache import cache
-from django.utils.html import conditional_escape
-from django.core.validators import URLValidator
-from django.core.exceptions import ValidationError
+## API Reference
 
+### Manifest Tag
+Returns the manifest tag
 
-from manifest_loader.exceptions import WebpackManifestNotFound, \
-    CustomManifestLoaderNotValid
-from manifest_loader.loaders import DefaultLoader, LoaderABC
-
-
-register = template.Library()
-
-APP_SETTINGS = {
-    'output_dir': None,
-    'manifest_file': 'manifest.json',
-    'cache': False,
-    'loader': DefaultLoader
-}
-
-if hasattr(settings, 'MANIFEST_LOADER'):
-    APP_SETTINGS.update(settings.MANIFEST_LOADER)
-
-
+```python
 @register.tag('manifest')
 def do_manifest(parser, token): 
-    """Returns the manifest tag """
+
     return ManifestNode(token)
 
+```
+### Manifest Match Tag
+Returns manifest_match tag
+
+```python
 @register.tag('manifest_match')
 def do_manifest_match(parser, token):
-    """Returns manifest match tag"""
     return ManifestMatchNode(token)
 
+```
+### ManifestNode
+Initializes and renders the creation of the manifest tag and 
 
 
-class ManifestNode(template.Node):
+```python
+ class ManifestNode(template.Node):
     """ Initalizes the creation of the manifest template tag"""
     def __init__(self, token):
         bits = token.split_contents()
@@ -54,11 +39,13 @@ class ManifestNode(template.Node):
         """Renders the creation of the manifest tag"""
         manifest_key = get_value(self.bits[1], context)
         manifest = get_manifest()
-        manifest_value = load_from_manifest(manifest, key=manifest_key)
-
+        manifest_value = manifest.get(manifest_key, manifest_key)
         return make_url(manifest_value, context)
+```
+### ManifestMatch Node
+Initalizes and renders the creation of the manifest match tag 
 
-
+```python
 class ManifestMatchNode(template.Node):
     """ Initalizes the creation of the manifest match template tag"""
     def __init__(self, token):
@@ -77,9 +64,11 @@ class ManifestMatchNode(template.Node):
 
         manifest = get_manifest()
 
-        files = load_from_manifest(manifest, pattern=search_string)
+        matched_files = [file for file in manifest.keys() if
+                         fnmatch.fnmatch(file, search_string)]
+        mapped_files = [manifest.get(file) for file in matched_files]
 
-        for file in files:
+        for file in mapped_files:
             url = make_url(file, context)
             urls.append(url)
         output_tags = [output_tag.format(match=file) for file in urls]
@@ -108,10 +97,13 @@ def get_manifest():
         cache.set('webpack_manifest', data)
 
     return data
+```
 
 
+### Finding the Manifest File
+Returns manifest_file
+```python
 def find_manifest_path():
-    """ Returns manifest_file """
     static_dirs = settings.STATICFILES_DIRS
     if len(static_dirs) == 1:
         return os.path.join(static_dirs[0], APP_SETTINGS['manifest_file'])
@@ -121,36 +113,38 @@ def find_manifest_path():
             return manifest_path
     raise WebpackManifestNotFound('settings.STATICFILES_DIRS')
 
+```
+### String Validator 
+Method validates if it's a string
+
+```python
 
 def is_quoted_string(string):
-    """Method validates if it's a stirng"""
     if len(string) < 2:
         return False
     return string[0] == string[-1] and string[0] in ('"', "'")
+```
 
+### Value Validator 
+Method validates the value 
+
+```python
 
 def get_value(string, context):
-    """Method validates the value of the string"""
+    
     if is_quoted_string(string):
         return string[1:-1]
     return context.get(string, '')
+```
 
 
-def load_from_manifest(manifest, key=None, pattern=None):
-    loader = APP_SETTINGS['loader']
+### URL Validator 
+Function validates if it's a URL 
 
-    if not issubclass(loader, LoaderABC):
-        raise CustomManifestLoaderNotValid
-
-    if key:
-        return loader.get_single_match(manifest, key)
-    elif pattern:
-        return loader.get_multi_match(manifest, pattern)
-    return ''
-
+```python
 
 def is_url(potential_url):
-    """Function validates if it's a URL """
+ 
    
     validate = URLValidator()
     try:
@@ -159,9 +153,14 @@ def is_url(potential_url):
     except ValidationError:
         return False
 
+```
 
+### URL Generator 
+Returns the URL that will be outputed to the static file directory
+
+```python
 def make_url(manifest_value, context):
-    """ Returns the URL that will be outputed to the static file directory"""
+
 
     if is_url(manifest_value):
         url = manifest_value
@@ -171,3 +170,5 @@ def make_url(manifest_value, context):
         url = conditional_escape(url)
     return url
 
+
+```
