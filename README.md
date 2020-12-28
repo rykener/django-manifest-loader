@@ -65,7 +65,7 @@ turns into
 <script src="/static/main.8f7705adfa281590b8dd.js"></script>
 ```
 
-# License 
+### License 
 
 Django Manifest Loader is distributed under the [3-clause BSD license](https://opensource.org/licenses/BSD-3-Clause). 
 This is an open source license granting broad permissions to modify and redistribute the software.
