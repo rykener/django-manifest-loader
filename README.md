@@ -1,6 +1,6 @@
 # Django Manifest Loader 
 
-[![Build Status](https://img.shields.io/travis/shonin/django-manifest-loader/main?label=latest%20published%20branch&style=flat-square
+[![Build Status](https://img.shields.io/travis/shonin/django-manifest-loader/main?label=stable%20branch&style=flat-square
 )](https://travis-ci.org/shonin/django-manifest-loader)
 [![Build Status](https://img.shields.io/travis/shonin/django-manifest-loader/dev?label=development%20branch&style=flat-square
 )](https://travis-ci.org/shonin/django-manifest-loader)
