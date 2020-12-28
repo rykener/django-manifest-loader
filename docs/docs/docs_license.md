@@ -26,7 +26,7 @@ After installation of sphinx and recommonmark, to generate the `_build` director
 
 # Contributing
 
-Do it. Please feel free to file an issue or open a pull request. The code of conduct is basic human kindness.
+Do it. Please feel free to file an issue or open a pull request. The code of conduct is basic human kindness. [See the project on Github here](https://github.com/shonin/django-manifest-loader)
 
 # License 
 

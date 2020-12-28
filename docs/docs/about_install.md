@@ -1,33 +1,26 @@
 # About
 
-Reads a manifest file to import your assets into a Django template. Find
-the URL for a single asset or the URLs for multiple assets by using
+Django Manifest Loader reads a manifest file to import your assets into a Django template. Find
+the URL for a single asset OR find the URLs for multiple assets by using
 pattern matching against the file names. Path resolution handled using
-Django's built-in ``staticfiles`` app. Minimal configuraton,
-cache-busting, split chunks.
-
-At its heart Django Manifest Loader is an extension to Django's built-in `static` template tag. 
-When you use the provided `{% manifest %}` template tag, all the manifest loader is doing is 
-taking the input string, looking it up against the manifest file, modifying the value, and then
-passing along the result to the `{% static %}` template tag. The `{% manifest_match %}` tag works
-similarly, just with a bit of additional logic to find all the necessary files and to render the output.
-
+Django's built-in `staticfiles` app. Minimal configuraton, cache-busting, split chunks.
+Designed for webpack, ready for anything. 
 
 **Turns this**
 
-```djangotemplate
+```html
 {% load manifest %}
 <script src="{% manifest 'main.js' %}" />
 ```
 
 **Into this**
 
-```djangotemplate
+```html
 <script src="/static/main.8f7705adfa281590b8dd.js" />
 ```
 
-* For an in-depth look at this package, check out [this blog post here](https://medium.com/@shonin/django-and-webpack-now-work-together-seamlessly-a90cffdbab8e)
-* [Quick start guide](https://medium.com/@shonin/django-and-webpack-in-4-short-steps-b39bd3380c71)
+* For an in-depth tutorial, check out [this blog post here](https://medium.com/@shonin/django-and-webpack-now-work-together-seamlessly-a90cffdbab8e)
+* [Quick start blog post](https://medium.com/@shonin/django-and-webpack-in-4-short-steps-b39bd3380c71)
 
 ## Additional resources
 
@@ -36,7 +29,7 @@ similarly, just with a bit of additional logic to find all the necessary files a
 
 # Installation
 
-```shell script
+```shell
 pip install django-manifest-loader
 ```
 
@@ -72,7 +65,7 @@ MANIFEST_LOADER = {
     'output_dir': None,  # where webpack outputs to, if not set, will search in STATICFILES_DIRS for the manifest. 
     'manifest_file': 'manifest.json',  # name of your manifest file
     'cache': False,  # recommended True for production, requires a server restart to pick up new values from the manifest.
-    'loader': DefaultLoader  # how the loader reading manifest files. 
+    'loader': DefaultLoader  # how the manifest files are interacted with 
 }
 ```
 
@@ -83,7 +76,7 @@ _webpack is not technically required: Django Manifest Loader by default expects 
 
 You must install the `WebpackManifestPlugin`. Optionally, but recommended, is to install the `CleanWebpackPlugin`.
 
-```shell script
+```shell
 npm i --save-dev webpack-manifest-plugin clean-webpack-plugin
 ```
 
@@ -103,6 +96,7 @@ module.exports = {
 };
 ```
 
+_For a deep dive into a supported webpack configuration, read the blog post introducting this package [here](https://medium.com/@shonin/django-and-webpack-now-work-together-seamlessly-a90cffdbab8e)_
 
 # Example Project Structure
 
