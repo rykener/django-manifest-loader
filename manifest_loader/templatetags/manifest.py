@@ -1,6 +1,5 @@
 import json
 import os
-import fnmatch
 
 from django import template
 from django.templatetags.static import StaticNode
@@ -11,7 +10,9 @@ from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
 
 
-from manifest_loader.exceptions import WebpackManifestNotFound
+from manifest_loader.exceptions import WebpackManifestNotFound, \
+    CustomManifestLoaderNotValid
+from manifest_loader.loaders import DefaultLoader, LoaderABC
 
 
 register = template.Library()
@@ -19,7 +20,8 @@ register = template.Library()
 APP_SETTINGS = {
     'output_dir': None,
     'manifest_file': 'manifest.json',
-    'cache': False
+    'cache': False,
+    'loader': DefaultLoader
 }
 
 if hasattr(settings, 'MANIFEST_LOADER'):
@@ -47,7 +49,8 @@ class ManifestNode(template.Node):
     def render(self, context):
         manifest_key = get_value(self.bits[1], context)
         manifest = get_manifest()
-        manifest_value = manifest.get(manifest_key, manifest_key)
+        manifest_value = load_from_manifest(manifest, key=manifest_key)
+
         return make_url(manifest_value, context)
 
 
@@ -67,11 +70,9 @@ class ManifestMatchNode(template.Node):
 
         manifest = get_manifest()
 
-        matched_files = [file for file in manifest.keys() if
-                         fnmatch.fnmatch(file, search_string)]
-        mapped_files = [manifest.get(file) for file in matched_files]
+        files = load_from_manifest(manifest, pattern=search_string)
 
-        for file in mapped_files:
+        for file in files:
             url = make_url(file, context)
             urls.append(url)
         output_tags = [output_tag.format(match=file) for file in urls]
@@ -124,6 +125,19 @@ def get_value(string, context):
     return context.get(string, '')
 
 
+def load_from_manifest(manifest, key=None, pattern=None):
+    loader = APP_SETTINGS['loader']
+
+    if not issubclass(loader, LoaderABC):
+        raise CustomManifestLoaderNotValid
+
+    if key:
+        return loader.get_single_match(manifest, key)
+    elif pattern:
+        return loader.get_multi_match(manifest, pattern)
+    return ''
+
+
 def is_url(potential_url):
     validate = URLValidator()
     try:
@@ -141,3 +155,4 @@ def make_url(manifest_value, context):
     if context.autoescape:
         url = conditional_escape(url)
     return url
+
