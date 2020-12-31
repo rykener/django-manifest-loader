@@ -25,18 +25,31 @@ if hasattr(settings, 'MANIFEST_LOADER'):
 
 
 def manifest(key, context=None):
+    """
+    Looks up the key against the manifest file to return the url of the key
+
+    :param key: string indicating the key to pull from the manifest file
+    :param context: optional, Django template context
+    :return: string that points to the url of the requested resource
+    """
     manifest_obj = get_manifest()
     manifest_value = load_from_manifest(manifest_obj, key=key)
     return make_url(manifest_value, context)
 
 
 def manifest_match(pattern, output, context=None):
+    """
+    Looks up the provided pattern against the manifest and injects all
+    matching values into the output string.
+
+    :param pattern: A pattern used to match against the keys in the manifest
+    :param output: A string containing the substring ``{match}``. The output is repeated for each match found in the manifest and the substring is replaced by the urls derived from the manifest.
+    :param context: Optional Django template context
+    :return: Returns a string of urls embedded into the output
+    """
     manifest_obj = get_manifest()
     files = load_from_manifest(manifest_obj, pattern=pattern)
-    urls = []
-    for file in files:
-        url = make_url(file, context)
-        urls.append(url)
+    urls = [make_url(file, context) for file in files]
     output_tags = [output.format(match=file) for file in urls]
     return '\n'.join(output_tags)
 
