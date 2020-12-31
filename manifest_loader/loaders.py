@@ -36,7 +36,7 @@ class CreateReactAppLoader(LoaderABC):
     def get_multi_match(manifest, pattern):
         split_pattern = pattern.split(' ')
         parent = split_pattern[0] if len(split_pattern) == 2 else 'entrypoints'
-        pattern = split_pattern[1] if len(split_pattern) == 2 else split_pattern
+        pattern = split_pattern[1] if len(split_pattern) == 2 else split_pattern[0]
         files = manifest.get(parent, {})
 
         if isinstance(files, dict):
@@ -45,8 +45,7 @@ class CreateReactAppLoader(LoaderABC):
             return [files.get(file) for file in matched_files]
 
         elif isinstance(files, list):
-            return [file for file in files if
-                         fnmatch.fnmatch(file, pattern)]
+            return [file for file in files if fnmatch.fnmatch(file, pattern)]
 
         return []
 
