@@ -45,6 +45,57 @@ and a string to input the file URLs into. The second argument must contain the s
 
 # Advanced Usage
 
+## Use as Jinja template filter
+
+Use with `django-jinja` is very similar to usage with Django templating. In the jinja configuration you need to point
+to the filters like:
+
+```python
+# settings.py
+
+TEMPLATES = [
+    {
+        "BACKEND": "django_jinja.backend.Jinja2",
+        "OPTIONS": {
+            "filters": {
+                "manifest": "manifest_loader.utils.manifest",
+                "manifest_match": "manifest_loader.utils.manifest_match",
+            }
+        }
+    },
+]
+```
+
+The manifest filter takes a single argument:
+
+```html
+<script src="{{ 'main.js'|manifest }}"></script>
+```
+
+And the manifest match filter:
+
+```html
+{{ '*.js'|manifest_match('<script src="{match}"></script>') }}
+```
+
+All other instructions in this documentation should be followed as normal. 
+
+## Use outside of templates
+
+If you need the functions of the `manifest` and `manifest_match` template tags, you can import their core logic into 
+your python project and use them exactly as you would in your templates. 
+
+```
+>>> # register django settings if using in python console
+>>> from manifest_loader.utils import manifest, manifest_match
+>>>
+>>> manifest('main.js')
+'/static/main.e12dfe2f9b185dea03a4.js'
+>>>
+>>> manifest_match('*.js', '{match}')
+'/static/main.e12dfe2f9b185dea03a4.js\n/static/chunk1.hash.js\n/static/chunk2.hash.js\n/static/chunk3.hash.js'
+```
+
 ## Custom Loaders
 
 Custom loaders allow you to implement your own means of extracting data from your manifest file. If your manifest

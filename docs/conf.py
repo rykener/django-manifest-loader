@@ -62,3 +62,7 @@ source_suffix = {
     '.txt': 'markdown',
     '.md': 'markdown',
 }
+
+html_theme_options = {
+    "collapse_navigation" : False
+}
