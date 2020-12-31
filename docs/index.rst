@@ -10,10 +10,12 @@ Django's built-in ``staticfiles`` app. Minimal configuraton, cache-busting, spli
 Designed for webpack, ready for anything. 
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    docs/about_install
    docs/usage
+   docs/loaders
+   docs/advanced_usage
    docs/philosophy
    docs/reference
    docs/docs_license
