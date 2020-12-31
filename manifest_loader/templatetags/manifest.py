@@ -9,11 +9,9 @@ from django.utils.html import conditional_escape
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
 
-
 from manifest_loader.exceptions import WebpackManifestNotFound, \
     CustomManifestLoaderNotValid
 from manifest_loader.loaders import DefaultLoader, LoaderABC
-
 
 register = template.Library()
 
@@ -30,8 +28,9 @@ if hasattr(settings, 'MANIFEST_LOADER'):
 
 @register.tag('manifest')
 def do_manifest(parser, token): 
-    """Returns the manifest tag """
+    """Returns the manifest tag"""
     return ManifestNode(token)
+
 
 @register.tag('manifest_match')
 def do_manifest_match(parser, token):
@@ -39,9 +38,10 @@ def do_manifest_match(parser, token):
     return ManifestMatchNode(token)
 
 
-
 class ManifestNode(template.Node):
-    """ Initalizes the creation of the manifest template tag"""
+    """
+    Template node for the manifest tag
+    """
     def __init__(self, token):
         bits = token.split_contents()
         if len(bits) < 2:
@@ -49,9 +49,10 @@ class ManifestNode(template.Node):
                 "'%s' takes one argument (name of file)" % bits[0])
         self.bits = bits
 
-
     def render(self, context):
-        """Renders the creation of the manifest tag"""
+        """
+        returns the url of the found asset
+        """
         manifest_key = get_value(self.bits[1], context)
         manifest = get_manifest()
         manifest_value = load_from_manifest(manifest, key=manifest_key)
@@ -60,7 +61,9 @@ class ManifestNode(template.Node):
 
 
 class ManifestMatchNode(template.Node):
-    """ Initalizes the creation of the manifest match template tag"""
+    """
+    Template node for the manifest match tag
+    """
     def __init__(self, token):
         self.bits = token.split_contents()
         if len(self.bits) < 3:
@@ -70,7 +73,10 @@ class ManifestMatchNode(template.Node):
             )
 
     def render(self, context):
-        """ Renders the manifest match tag"""
+        """
+        returns a string of all found urls,
+            each embedded in the provided string
+        """
         urls = []
         search_string = get_value(self.bits[1], context)
         output_tag = get_value(self.bits[2], context)
@@ -87,7 +93,10 @@ class ManifestMatchNode(template.Node):
 
 
 def get_manifest():
-    """ Returns the manifest file from the output directory """
+    """
+    Returns the manifest file converted into a dict. If caching is enabled
+    this will return the cached manifest.
+    """
     cached_manifest = cache.get('webpack_manifest')
     if APP_SETTINGS['cache'] and cached_manifest:
         return cached_manifest
@@ -111,7 +120,10 @@ def get_manifest():
 
 
 def find_manifest_path():
-    """ Returns manifest_file """
+    """
+    combs through settings.STATICFILES_DIRS to find the path of the manifest
+    file.
+    """
     static_dirs = settings.STATICFILES_DIRS
     if len(static_dirs) == 1:
         return os.path.join(static_dirs[0], APP_SETTINGS['manifest_file'])
@@ -123,20 +135,31 @@ def find_manifest_path():
 
 
 def is_quoted_string(string):
-    """Method validates if it's a stirng"""
+    """
+    checks if the string parameter is surrounded in quotes, which is how
+    strings arrive from the template tags.
+    """
     if len(string) < 2:
         return False
     return string[0] == string[-1] and string[0] in ('"', "'")
 
 
 def get_value(string, context):
-    """Method validates the value of the string"""
+    """
+    determines the true value of an input to a template tag. If the string is
+    quoted it's interpreted as a string. If not quoted then it's treated as a
+    variable and looked up against the context.
+    """
     if is_quoted_string(string):
         return string[1:-1]
     return context.get(string, '')
 
 
 def load_from_manifest(manifest, key=None, pattern=None):
+    """
+    uses the loader defined in settings to get the values
+    from the manifest file
+    """
     loader = APP_SETTINGS['loader']
 
     if not issubclass(loader, LoaderABC):
@@ -150,8 +173,7 @@ def load_from_manifest(manifest, key=None, pattern=None):
 
 
 def is_url(potential_url):
-    """Function validates if it's a URL """
-   
+    """checks if a string is a valid url"""
     validate = URLValidator()
     try:
         validate(potential_url)
@@ -161,8 +183,9 @@ def is_url(potential_url):
 
 
 def make_url(manifest_value, context):
-    """ Returns the URL that will be outputed to the static file directory"""
-
+    """
+    uses the django staticfiles app to get the url of the file being asked for
+    """
     if is_url(manifest_value):
         url = manifest_value
     else:
@@ -170,4 +193,3 @@ def make_url(manifest_value, context):
     if context.autoescape:
         url = conditional_escape(url)
     return url
-

@@ -15,7 +15,7 @@ Designed for webpack, ready for anything.
    docs/about_install
    docs/usage
    docs/philosophy
-   docs/reference
+   docs/api_reference
    docs/docs_license
 
 .. |Stable Status| image:: https://img.shields.io/travis/shonin/django-manifest-loader/main?label=stable%20branch&style=flat-square
