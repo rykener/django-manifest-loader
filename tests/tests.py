@@ -4,7 +4,7 @@ from django.template import TemplateSyntaxError, Context, Template
 from django.core.cache import cache
 from django.apps import AppConfig
 
-from manifest_loader.templatetags.manifest import find_manifest_path, \
+from manifest_loader.utils import find_manifest_path, \
     get_manifest, APP_SETTINGS, is_quoted_string, is_url
 
 from manifest_loader.apps import ManifestLoader
