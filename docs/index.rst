@@ -14,6 +14,7 @@ Designed for webpack, ready for anything.
 
    docs/about_install
    docs/usage
+   docs/examples
    docs/philosophy
    docs/api_reference
    docs/docs_license

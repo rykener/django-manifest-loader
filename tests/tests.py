@@ -4,8 +4,8 @@ from django.template import TemplateSyntaxError, Context, Template
 from django.core.cache import cache
 from django.apps import AppConfig
 
-from manifest_loader.utils import find_manifest_path, \
-    get_manifest, APP_SETTINGS, is_quoted_string, is_url
+from manifest_loader.utils import _find_manifest_path, \
+    _get_manifest, APP_SETTINGS, _is_quoted_string, _is_url
 
 from manifest_loader.apps import ManifestLoader
 from manifest_loader.exceptions import WebpackManifestNotFound, \
@@ -28,30 +28,30 @@ def render_template(string, context=None):
 
 class IsUrlTests(SimpleTestCase):
     def test_is_url(self):
-        self.assertTrue(is_url('http://localhost:8080'))
-        self.assertTrue(is_url('https://localhost:8080'))
-        self.assertTrue(is_url('http://localhost'))
-        self.assertTrue(is_url('http://124.22.2.119:8080'))
-        self.assertTrue(is_url('https://example.com/static/main.js'))
-        self.assertFalse(is_url('main.hkl328o.js'))
-        self.assertFalse(is_url('http:hello.js'))
-        self.assertFalse(is_url('https.js'))
+        self.assertTrue(_is_url('http://localhost:8080'))
+        self.assertTrue(_is_url('https://localhost:8080'))
+        self.assertTrue(_is_url('http://localhost'))
+        self.assertTrue(_is_url('http://124.22.2.119:8080'))
+        self.assertTrue(_is_url('https://example.com/static/main.js'))
+        self.assertFalse(_is_url('main.hkl328o.js'))
+        self.assertFalse(_is_url('http:hello.js'))
+        self.assertFalse(_is_url('https.js'))
 
 
 class IsQuotedStringTests(SimpleTestCase):
     def test_can_remove_quotes(self):
-        self.assertTrue(is_quoted_string('"foo"'))
-        self.assertTrue(is_quoted_string("'foo'"))
-        self.assertFalse(is_quoted_string("foo"))
-        self.assertFalse(is_quoted_string('foo'))
-        self.assertFalse(is_quoted_string('f'))
+        self.assertTrue(_is_quoted_string('"foo"'))
+        self.assertTrue(_is_quoted_string("'foo'"))
+        self.assertFalse(_is_quoted_string("foo"))
+        self.assertFalse(_is_quoted_string('foo'))
+        self.assertFalse(_is_quoted_string('f'))
 
 
 class FindManifestPathTests(SimpleTestCase):
     def test_default_path_found(self):
         self.assertEqual(
             str(settings.BASE_DIR / 'dist' / 'manifest.json'),
-            find_manifest_path()
+            _find_manifest_path()
         )
 
     def test_correct_path_found_among_options(self):
@@ -59,7 +59,7 @@ class FindManifestPathTests(SimpleTestCase):
             self.assertEqual(len(settings.STATICFILES_DIRS), 4)
             self.assertEqual(
                 str(settings.BASE_DIR / 'dist' / 'manifest.json'),
-                find_manifest_path()
+                _find_manifest_path()
             )
 
     def test_manifest_not_found(self):
@@ -67,13 +67,13 @@ class FindManifestPathTests(SimpleTestCase):
                                              settings.BASE_DIR / 'bar']):
             self.assertEqual(len(settings.STATICFILES_DIRS), 2)
             with self.assertRaises(WebpackManifestNotFound):
-                find_manifest_path()
+                _find_manifest_path()
 
     def test_manifest_not_found_empty(self):
         with self.settings(STATICFILES_DIRS=[]):
             self.assertEqual(len(settings.STATICFILES_DIRS), 0)
             with self.assertRaises(WebpackManifestNotFound):
-                find_manifest_path()
+                _find_manifest_path()
 
 
 class GetManifestTests(SimpleTestCase):
@@ -82,7 +82,7 @@ class GetManifestTests(SimpleTestCase):
         APP_SETTINGS.update({'cache': True})
         self.assertDictEqual(
             {'foo': 'bar'},
-            get_manifest()
+            _get_manifest()
         )
         cache.delete('webpack_manifest')
         APP_SETTINGS.update({'cache': False})
@@ -98,7 +98,7 @@ class GetManifestTests(SimpleTestCase):
                 "chunk3.js": "chunk3.hash.js",
                 "styles.css": "styles.hash.css"
             },
-            get_manifest()
+            _get_manifest()
         )
         self.assertDictEqual(
             {'foo': 'bar'},
@@ -109,13 +109,13 @@ class GetManifestTests(SimpleTestCase):
     def test_custom_output_dir(self):
         APP_SETTINGS.update({'output_dir': settings.BASE_DIR / 'foo'})
         with self.assertRaises(WebpackManifestNotFound):
-            get_manifest()
+            _get_manifest()
         APP_SETTINGS.update({'output_dir': None})
 
     def test_cache_set(self):
         APP_SETTINGS.update({'cache': True})
         self.assertIsNone(cache.get('webpack_manifest'))
-        manifest = get_manifest()
+        manifest = _get_manifest()
 
         self.assertDictEqual(
             manifest,

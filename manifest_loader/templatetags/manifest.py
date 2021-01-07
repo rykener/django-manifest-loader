@@ -1,5 +1,5 @@
 from django import template
-from manifest_loader.utils import get_value, manifest, manifest_match
+from manifest_loader.utils import _get_value, manifest, manifest_match
 
 register = template.Library()
 
@@ -31,7 +31,7 @@ class ManifestNode(template.Node):
         """
         returns the url of the found asset
         """
-        manifest_key = get_value(self.bits[1], context)
+        manifest_key = _get_value(self.bits[1], context)
         return manifest(manifest_key, context)
 
 
@@ -52,7 +52,7 @@ class ManifestMatchNode(template.Node):
         returns a string of all found urls,
             each embedded in the provided string
         """
-        search_string = get_value(self.bits[1], context)
-        output_tag = get_value(self.bits[2], context)
+        search_string = _get_value(self.bits[1], context)
+        output_tag = _get_value(self.bits[2], context)
         return manifest_match(search_string, output_tag, context)
 

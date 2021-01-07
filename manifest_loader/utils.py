@@ -32,9 +32,9 @@ def manifest(key, context=None):
     :param context: optional, Django template context
     :return: string that points to the url of the requested resource
     """
-    manifest_obj = get_manifest()
-    manifest_value = load_from_manifest(manifest_obj, key=key)
-    return make_url(manifest_value, context)
+    manifest_obj = _get_manifest()
+    manifest_value = _load_from_manifest(manifest_obj, key=key)
+    return _make_url(manifest_value, context)
 
 
 def manifest_match(pattern, output, context=None):
@@ -47,14 +47,14 @@ def manifest_match(pattern, output, context=None):
     :param context: Optional Django template context
     :return: Returns a string of urls embedded into the output
     """
-    manifest_obj = get_manifest()
-    files = load_from_manifest(manifest_obj, pattern=pattern)
-    urls = [make_url(file, context) for file in files]
+    manifest_obj = _get_manifest()
+    files = _load_from_manifest(manifest_obj, pattern=pattern)
+    urls = [_make_url(file, context) for file in files]
     output_tags = [output.format(match=file) for file in urls]
     return '\n'.join(output_tags)
 
 
-def get_manifest():
+def _get_manifest():
     """
     Returns the manifest file converted into a dict. If caching is enabled
     this will return the cached manifest.
@@ -67,7 +67,7 @@ def get_manifest():
         manifest_path = os.path.join(APP_SETTINGS['output_dir'],
                                      APP_SETTINGS['manifest_file'])
     else:
-        manifest_path = find_manifest_path()
+        manifest_path = _find_manifest_path()
 
     try:
         with open(manifest_path) as manifest_file:
@@ -81,7 +81,7 @@ def get_manifest():
     return data
 
 
-def find_manifest_path():
+def _find_manifest_path():
     """
     combs through settings.STATICFILES_DIRS to find the path of the manifest
     file.
@@ -96,7 +96,7 @@ def find_manifest_path():
     raise WebpackManifestNotFound('settings.STATICFILES_DIRS')
 
 
-def is_quoted_string(string):
+def _is_quoted_string(string):
     """
     checks if the string parameter is surrounded in quotes, which is how
     strings arrive from the template tags.
@@ -106,18 +106,18 @@ def is_quoted_string(string):
     return string[0] == string[-1] and string[0] in ('"', "'")
 
 
-def get_value(string, context):
+def _get_value(string, context):
     """
     determines the true value of an input to a template tag. If the string is
     quoted it's interpreted as a string. If not quoted then it's treated as a
     variable and looked up against the context.
     """
-    if is_quoted_string(string):
+    if _is_quoted_string(string):
         return string[1:-1]
     return context.get(string, '')
 
 
-def load_from_manifest(manifest, key=None, pattern=None):
+def _load_from_manifest(manifest, key=None, pattern=None):
     """
     uses the loader defined in settings to get the values
     from the manifest file
@@ -134,7 +134,7 @@ def load_from_manifest(manifest, key=None, pattern=None):
     return ''
 
 
-def is_url(potential_url):
+def _is_url(potential_url):
     """checks if a string is a valid url"""
     validate = URLValidator()
     try:
@@ -144,11 +144,11 @@ def is_url(potential_url):
         return False
 
 
-def make_url(manifest_value, context=None):
+def _make_url(manifest_value, context=None):
     """
     uses the django staticfiles app to get the url of the file being asked for
     """
-    if is_url(manifest_value):
+    if _is_url(manifest_value):
         url = manifest_value
     else:
         url = StaticNode.handle_simple(manifest_value)

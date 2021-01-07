@@ -10,13 +10,13 @@ Designed for webpack, ready for anything.
 
 ```html
 {% load manifest %}
-<script src="{% manifest 'main.js' %}" />
+<script src="{% manifest 'main.js' %}"></script>
 ```
 
 **Into this**
 
 ```html
-<script src="/static/main.8f7705adfa281590b8dd.js" />
+<script src="/static/main.8f7705adfa281590b8dd.js"></script>
 ```
 
 * For an in-depth tutorial, check out [this blog post here](https://medium.com/@shonin/django-and-webpack-now-work-together-seamlessly-a90cffdbab8e)
@@ -70,9 +70,9 @@ MANIFEST_LOADER = {
 ```
 
 
-## webpack configuration
+## Webpack Configuration
 
-_webpack is not technically required: Django Manifest Loader by default expects a manifest file in the form output by [webpack Manifest Plugin](https://github.com/shellscape/webpack-manifest-plugin). See the section on custom loaders for information on how to use a different type of manifest file._
+_Webpack is not technically required: Django Manifest Loader by default expects a manifest file in the form output by [Webpack Manifest Plugin](https://github.com/shellscape/webpack-manifest-plugin). See the section on custom loaders for information on how to use a different type of manifest file._
 
 You must install the `WebpackManifestPlugin`. Optionally, but recommended, is to install the `CleanWebpackPlugin`.
 
@@ -84,19 +84,19 @@ npm i --save-dev webpack-manifest-plugin clean-webpack-plugin
 // webpack.config.js
 
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
-const ManifestPlugin = require('webpack-manifest-plugin');
+const { WebpackManifestPlugin } = require('webpack-manifest-plugin');
 
 module.exports = {
   ...
   plugins: [
       new CleanWebpackPlugin(),  // removes outdated assets from the output dir
-      new ManifestPlugin(),  // generates the required manifest.json file
+      new WebpackManifestPlugin(),  // generates the required manifest.json file
   ],
   ...
 };
 ```
 
-_For a deep dive into a supported webpack configuration, read the blog post introducting this package [here](https://medium.com/@shonin/django-and-webpack-now-work-together-seamlessly-a90cffdbab8e)_
+_For a deep dive into a supported webpack configuration, read the blog post introducing this package [here](https://medium.com/@shonin/django-and-webpack-now-work-together-seamlessly-a90cffdbab8e)_
 
 # Example Project Structure
 
