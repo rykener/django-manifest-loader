@@ -36,6 +36,13 @@ cache-busting, split chunks.
 
 ## Quick reference:
 
+Add `manifest_loader` to your `INSTALLED_APPS` and:
+
+```
+STATICFILES_STORAGE = 'manifest_loader.storage.DjangoManifestLoaderStorage'
+```
+
+
 ### Manifest tag
 
 ```djangotemplate
