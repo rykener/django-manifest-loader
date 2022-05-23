@@ -1,5 +1,6 @@
 import json
 import os
+from urllib import request
 
 from django.templatetags.static import StaticNode
 from django.conf import settings
@@ -70,7 +71,11 @@ def _get_manifest():
         manifest_path = _find_manifest_path()
 
     try:
-        with open(manifest_path) as manifest_file:
+        if _is_url(manifest_path):
+            open_manifest = request.urlopen
+        else: 
+            open_manifest = open
+        with open_manifest(manifest_path) as manifest_file:
             data = json.load(manifest_file)
     except FileNotFoundError:
         raise WebpackManifestNotFound(manifest_path)
