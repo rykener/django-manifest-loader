@@ -2,7 +2,7 @@ name: Django Manifest Loader CI
 on:
   pull_request:
     branches:
-      - 'develop'
+      - 'main'
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
