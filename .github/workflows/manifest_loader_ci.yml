@@ -12,10 +12,6 @@ jobs:
         python-version: [3.9]
 
     env:
-      CI: true
-      GITHUB_TOKEN: ${{ secrets.GITHUB_REPO_TOKEN }}
-      GIT_COMMITTER_NAME: ${{ secrets.GITHUB_USER_NAME }}
-      GIT_COMMITTER_EMAIL: ${{ secrets.GITHUB_USER_EMAIL }}
       GOOGLE_APPLICATION_CREDENTIALS: '${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}'
       GCR_REPO_NAME: '${{ secrets.GCR_REPO_NAME }}'
       GCR_REPO_LOCATION: '${{ secrets.GCR_REPO_LOCATION }}'
