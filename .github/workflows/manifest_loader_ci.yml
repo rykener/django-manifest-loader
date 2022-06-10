@@ -1,6 +1,6 @@
 name: Django Manifest Loader CI
 on:
-  pull_request:
+  push:
     branches:
       - 'main'
 jobs:
