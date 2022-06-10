@@ -14,7 +14,7 @@ except ImportError:
 
 
 package_metadata = {
-    'name': 'django-manifest-loader',
+    'name': 'tc-django-manifest-loader',
     'version': "1.0.1",
     'description': 'A Django app to load webpack assets.',
     'long_description': 'A Django app to load webpack assets.',
